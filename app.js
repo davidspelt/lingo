@@ -224,7 +224,6 @@ function updateKeyboardKeyColor(letter, status) {
         keyBtn.className = 'key absent';
     }
 }
-
 // Event Listeners voor fysiek toetsenbord
 window.addEventListener('keydown', (e) => {
     const key = e.key.toLowerCase();
