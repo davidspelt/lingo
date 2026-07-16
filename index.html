@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingo Lokaal</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>Lingo</h1>
+        
+        <div class="menu">
+            <label for="length-select">Kies woordlengte:</label>
+            <select id="length-select">
+                <option value="5">5 Letters</option>
+                <option value="6">6 Letters</option>
+                <option value="10">10 Letters</option>
+            </select>
+            <button id="start-btn">Start Spel</button>
+        </div>
+
+        <div id="board" class="board"></div>
+
+        <div class="input-container">
+            <input type="text" id="guess-input" maxlength="5" placeholder="Typ je woord..." disabled>
+            <button id="guess-btn" disabled>Raad</button>
+        </div>
+
+        <p id="message" class="message"></p>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
