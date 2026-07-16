@@ -1,7 +1,7 @@
 let wordsData = { 5: [], 6: [], 10: [] };
 let secretWord = "";
 let currentAttempt = 0;
-const maxAttempts = 6;
+const maxAttempts = 5;
 let wordLength = 5;
 let currentGuess = [];
 let gameActive = false;
