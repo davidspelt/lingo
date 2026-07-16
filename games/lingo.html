@@ -16,6 +16,8 @@
             --cell-border: #2c3a57;
             --text-light: #ffffff;
             --text-muted: #7e8fa8;
+            --team-a: #3498db;
+            --team-b: #2ecc71;
         }
 
         * {
@@ -53,7 +55,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         h1 {
@@ -68,6 +70,56 @@
 
         h1 span {
             color: var(--primary);
+        }
+
+        /* Team Selector Styling */
+        .team-selector-container {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: var(--bg-dark);
+            padding: 15px 25px;
+            border-radius: 16px;
+            border: 2px solid var(--cell-border);
+            margin-bottom: 20px;
+        }
+
+        .team-box {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 5px;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            border: 2px solid transparent;
+            min-width: 120px;
+        }
+
+        .team-box.team-a { color: var(--team-a); }
+        .team-box.team-b { color: var(--team-b); }
+
+        .team-box.team-a.active {
+            border-color: var(--team-a);
+            background-color: rgba(52, 152, 219, 0.1);
+            box-shadow: 0 0 15px rgba(52, 152, 219, 0.2);
+        }
+
+        .team-box.team-b.active {
+            border-color: var(--team-b);
+            background-color: rgba(46, 204, 113, 0.1);
+            box-shadow: 0 0 15px rgba(46, 204, 113, 0.2);
+        }
+
+        .team-name { font-weight: 800; font-size: 1.1rem; letter-spacing: 1px; }
+        .team-score { font-size: 1.8rem; font-weight: 900; color: #fff; }
+
+        .vs-divider {
+            font-weight: 900;
+            color: var(--text-muted);
+            font-size: 1.2rem;
         }
 
         .controls {
@@ -107,9 +159,7 @@
             transform: translateY(-2px);
         }
 
-        .btn:active {
-            transform: translateY(0);
-        }
+        .btn:active { transform: translateY(0); }
 
         .btn.active {
             background-color: var(--primary);
@@ -129,9 +179,7 @@
             transition: color 0.2s;
         }
 
-        .sound-toggle:hover {
-            color: var(--text-light);
-        }
+        .sound-toggle:hover { color: var(--text-light); }
 
         .board-container {
             width: 100%;
@@ -144,30 +192,12 @@
             padding-right: 5px;
         }
 
-        .board-container::-webkit-scrollbar {
-            width: 6px;
-        }
-        .board-container::-webkit-scrollbar-track {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 10px;
-        }
-        .board-container::-webkit-scrollbar-thumb {
-            background: var(--cell-border);
-            border-radius: 10px;
-        }
+        .board-container::-webkit-scrollbar { width: 6px; }
+        .board-container::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.02); border-radius: 10px; }
+        .board-container::-webkit-scrollbar-thumb { background: var(--cell-border); border-radius: 10px; }
 
-        .board {
-            display: grid;
-            gap: 10px;
-            width: 100%;
-        }
-
-        .row {
-            display: flex;
-            gap: 10px;
-            justify-content: center;
-            width: 100%;
-        }
+        .board { display: grid; gap: 10px; width: 100%; }
+        .row { display: flex; gap: 10px; justify-content: center; width: 100%; }
 
         .cell {
             aspect-ratio: 1/1;
@@ -187,35 +217,11 @@
             position: relative;
         }
 
-        .board[data-letters="6"] .cell {
-            max-width: 65px;
-            font-size: 2.2rem;
-            border-radius: 12px;
-        }
+        .board[data-letters="6"] .cell { max-width: 65px; font-size: 2.2rem; border-radius: 12px; }
+        .board[data-letters="10"] .cell { max-width: 65px; font-size: 2.2rem; border-width: 3px; border-radius: 12px; }
 
-        .board[data-letters="10"] {
-            gap: 10px;
-        }
-
-        .board[data-letters="10"] .row {
-            gap: 10px;
-        }
-
-        .board[data-letters="10"] .cell {
-            max-width: 65px;
-            font-size: 2.2rem;
-            border-width: 3px;
-            border-radius: 12px;
-        }
-
-        .cell.pop {
-            transform: scale(1.1);
-            border-color: var(--primary);
-        }
-
-        .cell.reveal {
-            animation: flipIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
-        }
+        .cell.pop { transform: scale(1.1); border-color: var(--primary); }
+        .cell.reveal { animation: flipIn 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards; }
 
         @keyframes flipIn {
             0% { transform: scaleY(1); }
@@ -245,33 +251,11 @@
             color: var(--text-muted);
         }
 
-        .cell.hint-letter {
-            color: rgba(255, 255, 255, 0.35);
-            border-style: dashed;
-        }
+        .cell.hint-letter { color: rgba(255, 255, 255, 0.35); border-style: dashed; }
 
-        .message-container {
-            height: 40px;
-            margin-top: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .message {
-            font-size: 1.2rem;
-            font-weight: 600;
-            color: var(--text-light);
-            text-align: center;
-            padding: 5px 15px;
-            border-radius: 20px;
-            transition: all 0.3s ease;
-        }
-
-        .message.error {
-            color: #ff4a4a;
-            animation: shake 0.4s ease;
-        }
+        .message-container { height: 40px; margin-top: 15px; display: flex; align-items: center; justify-content: center; }
+        .message { font-size: 1.2rem; font-weight: 600; color: var(--text-light); text-align: center; padding: 5px 15px; border-radius: 20px; transition: all 0.3s ease; }
+        .message.error { color: #ff4a4a; animation: shake 0.4s ease; }
 
         @keyframes shake {
             0%, 100% { transform: translateX(0); }
@@ -280,79 +264,25 @@
         }
 
         .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(5, 7, 12, 0.85);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: rgba(5, 7, 12, 0.85); display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; pointer-events: none; transition: opacity 0.3s ease; backdrop-filter: blur(5px);
         }
 
-        .modal-overlay.active {
-            opacity: 1;
-            pointer-events: auto;
-        }
+        .modal-overlay.active { opacity: 1; pointer-events: auto; }
 
         .modal {
-            background-color: var(--bg-card);
-            border: 3px solid var(--primary);
-            border-radius: 20px;
-            padding: 35px;
-            width: 90%;
-            max-width: 450px;
-            text-align: center;
-            box-shadow: 0 10px 40px rgba(228, 63, 90, 0.3);
-            transform: scale(0.8);
+            background-color: var(--bg-card); border: 3px solid var(--primary); border-radius: 20px;
+            padding: 35px; width: 90%; max-width: 450px; text-align: center;
+            box-shadow: 0 10px 40px rgba(228, 63, 90, 0.3); transform: scale(0.8);
             transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
         }
 
-        .modal-overlay.active .modal {
-            transform: scale(1);
-        }
-
-        .modal-title {
-            font-size: 2.2rem;
-            font-weight: 900;
-            margin-bottom: 15px;
-            text-transform: uppercase;
-        }
-
-        .modal-title.win {
-            color: var(--present);
-            text-shadow: 0 0 15px rgba(255, 177, 0, 0.4);
-        }
-
-        .modal-title.lose {
-            color: var(--primary);
-            text-shadow: 0 0 15px var(--primary-glow);
-        }
-
-        .modal-body {
-            font-size: 1.1rem;
-            margin-bottom: 25px;
-            line-height: 1.6;
-        }
-
-        .word-reveal {
-            font-size: 2rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: #ffffff;
-            background-color: #0b0c10;
-            padding: 10px 20px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: inline-block;
-            border: 1px solid var(--cell-border);
-        }
+        .modal-overlay.active .modal { transform: scale(1); }
+        .modal-title { font-size: 2.2rem; font-weight: 900; margin-bottom: 15px; text-transform: uppercase; }
+        .modal-title.win { color: var(--present); text-shadow: 0 0 15px rgba(255, 177, 0, 0.4); }
+        .modal-body { font-size: 1.1rem; margin-bottom: 25px; line-height: 1.6; }
+        .word-reveal { font-size: 2rem; font-weight: 800; letter-spacing: 2px; color: #ffffff; background-color: #0b0c10; padding: 10px 20px; border-radius: 10px; margin: 15px 0; display: inline-block; border: 1px solid var(--cell-border); }
 
         @media (max-height: 700px) {
             h1 { font-size: 2.5rem; }
@@ -366,6 +296,19 @@
     <div class="game-container">
         <div class="header">
             <h1>LIN<span>GO</span></h1>
+        </div>
+
+        <!-- Team Selector Area -->
+        <div class="team-selector-container">
+            <div id="team-a-box" class="team-box team-a active" onclick="selectTeam('A')">
+                <div class="team-name">TEAM A</div>
+                <div id="score-a" class="team-score">0</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div id="team-b-box" class="team-box team-b" onclick="selectTeam('B')">
+                <div class="team-name">TEAM B</div>
+                <div id="score-b" class="team-score">0</div>
+            </div>
         </div>
 
         <div class="controls">
@@ -390,12 +333,12 @@
 
     <div id="status-modal" class="modal-overlay">
         <div class="modal">
-            <div id="modal-title" class="modal-title">GEWONNEN!</div>
+            <div id="modal-title" class="modal-title win">GEWONNEN! 🎉</div>
             <div class="modal-body">
-                <p id="modal-desc">Geweldig gedaan! Je hebt het woord geraden.</p>
+                <p id="modal-desc">Geweldig gedaan!</p>
                 <div id="modal-word" class="word-reveal">WATER</div>
             </div>
-            <button class="btn active" onclick="closeModalAndRestart()" style="max-width: 200px; margin: 0 auto;">Speel Nogmaals</button>
+            <button class="btn active" onclick="closeModalAndRestart()" style="max-width: 200px; margin: 0 auto;">Volgende Woord</button>
         </div>
     </div>
 
@@ -419,6 +362,10 @@
         let revealedHints = []; 
         let lastRowCorrect = []; 
 
+        // Scores per team
+        let scores = { A: 0, B: 0 };
+        let currentTeam = 'A';
+
         let audioCtx = null;
         function initAudio() {
             if (!audioCtx) {
@@ -434,95 +381,60 @@
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
-
                 const now = audioCtx.currentTime;
 
                 if (type === 'type') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(600, now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(600, now); gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08);
                 } else if (type === 'backspace') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(400, now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
-                    osc.start(now);
-                    osc.stop(now + 0.08);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(400, now); gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08); osc.start(now); osc.stop(now + 0.08);
                 } else if (type === 'error') {
-                    osc.type = 'sawtooth';
-                    osc.frequency.setValueAtTime(150, now);
-                    osc.frequency.linearRampToValueAtTime(100, now + 0.25);
-                    gain.gain.setValueAtTime(0.15, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
-                    osc.start(now);
-                    osc.stop(now + 0.25);
+                    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now); osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+                    gain.gain.setValueAtTime(0.15, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25); osc.start(now); osc.stop(now + 0.25);
                 } else if (type === 'correct') {
-                    osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now); 
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
+                    osc.type = 'triangle'; osc.frequency.setValueAtTime(523.25, now); gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15);
                 } else if (type === 'present') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(440, now); 
-                    gain.gain.setValueAtTime(0.1, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
-                    osc.start(now);
-                    osc.stop(now + 0.15);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(440, now); gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15); osc.start(now); osc.stop(now + 0.15);
                 } else if (type === 'absent') {
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(250, now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
-                    osc.start(now);
-                    osc.stop(now + 0.1);
+                    osc.type = 'sine'; osc.frequency.setValueAtTime(250, now); gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1); osc.start(now); osc.stop(now + 0.1);
                 } else if (type === 'win') {
                     const notes = [523.25, 659.25, 783.99, 1046.50]; 
                     notes.forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.frequency.setValueAtTime(freq, now + (idx * 0.12));
-                        g.gain.setValueAtTime(0.1, now + (idx * 0.12));
-                        g.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.4);
-                        o.start(now + (idx * 0.12));
-                        o.stop(now + (idx * 0.12) + 0.45);
+                        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                        o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(freq, now + (idx * 0.12));
+                        g.gain.setValueAtTime(0.1, now + (idx * 0.12)); g.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.4);
+                        o.start(now + (idx * 0.12)); o.stop(now + (idx * 0.12) + 0.45);
                     });
                 } else if (type === 'hint') {
                     const notes = [587.33, 698.46, 880.00]; 
                     notes.forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.frequency.setValueAtTime(freq, now + (idx * 0.08));
-                        g.gain.setValueAtTime(0.08, now + (idx * 0.08));
-                        g.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.08) + 0.3);
-                        o.start(now + (idx * 0.08));
-                        o.stop(now + (idx * 0.08) + 0.35);
+                        const o = audioCtx.createOscillator(); const g = audioCtx.createGain();
+                        o.connect(g); g.connect(audioCtx.destination); o.frequency.setValueAtTime(freq, now + (idx * 0.08));
+                        g.gain.setValueAtTime(0.08, now + (idx * 0.08)); g.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.08) + 0.3);
+                        o.start(now + (idx * 0.08)); o.stop(now + (idx * 0.08) + 0.35);
                     });
                 }
-            } catch (e) {
-                console.log("Audio play error", e);
-            }
+            } catch (e) { console.log("Audio play error", e); }
+        }
+
+        function selectTeam(team) {
+            if (isAnimating) return;
+            currentTeam = team;
+            document.getElementById('team-a-box').classList.toggle('active', team === 'A');
+            document.getElementById('team-b-box').classList.toggle('active', team === 'B');
+            playSound('type');
         }
 
         function toggleSound() {
             soundEnabled = !soundEnabled;
             document.getElementById('sound-status').innerText = soundEnabled ? "AAN" : "UIT";
             document.getElementById('sound-icon').innerText = soundEnabled ? "🔊" : "🔇";
-            if (soundEnabled) {
-                initAudio();
-                playSound('type');
-            }
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
+            if (soundEnabled) { initAudio(); playSound('type'); }
+            if (document.activeElement) document.activeElement.blur();
         }
 
         async function fetchWordsCSV() {
@@ -541,11 +453,7 @@
                         count++;
                     }
                 });
-
-                if (count > 0) {
-                    wordsData = customLists;
-                    console.log(`${count} woorden geladen uit woorden.csv!`);
-                }
+                if (count > 0) wordsData = customLists;
             } catch (error) {
                 console.warn("Laden mislukt, we vallen terug op defaults:", error.message);
             } finally {
@@ -562,20 +470,13 @@
             }
 
             const cleanAvailable = wordsData[wordLength].filter(w => w.length === wordLength);
-            
             let usedWords = [];
-            try {
-                usedWords = JSON.parse(localStorage.getItem('lingo_used_words_' + wordLength)) || [];
-            } catch (e) {
-                usedWords = [];
-            }
+            try { usedWords = JSON.parse(localStorage.getItem('lingo_used_words_' + wordLength)) || []; } catch (e) { usedWords = []; }
 
             let unusedWords = cleanAvailable.filter(w => !usedWords.includes(w));
-
             if (unusedWords.length === 0) {
                 gameActive = false;
-                const board = document.getElementById('board');
-                board.innerHTML = '';
+                document.getElementById('board').innerHTML = '';
                 showMessage("Alle beschikbare woorden zijn al geraden!", true);
                 return;
             }
@@ -587,10 +488,8 @@
             currentAttempt = 0;
             totalAttempts = 5; 
             isAnimating = false; 
-            
             revealedHints = [0]; 
             lastRowCorrect = []; 
-            
             currentGuess = [];
             gameActive = true;
             clearMessage();
@@ -614,17 +513,7 @@
                     cell.id = `cell-${r}-${c}`;
                     
                     if (r === currentAttempt) {
-                        let isHint = false;
-                        if (currentAttempt < 5) {
-                            if (c === 0 || lastRowCorrect.includes(c)) {
-                                isHint = true;
-                            }
-                        } else {
-                            if (revealedHints.includes(c) || lastRowCorrect.includes(c)) {
-                                isHint = true;
-                            }
-                        }
-
+                        let isHint = (r < 5) ? (c === 0 || lastRowCorrect.includes(c)) : (revealedHints.includes(c) || lastRowCorrect.includes(c));
                         if (isHint) {
                             cell.innerText = secretWord[c];
                             cell.classList.add('hint-letter');
@@ -642,22 +531,14 @@
             
             let eligibleIndices = [];
             for (let i = 0; i < wordLength; i++) {
-                if (!revealedHints.includes(i) && !lastRowCorrect.includes(i)) {
-                    eligibleIndices.push(i);
-                }
+                if (!revealedHints.includes(i) && !lastRowCorrect.includes(i)) eligibleIndices.push(i);
             }
-
             if (eligibleIndices.length === 0) {
-                for (let i = 0; i < wordLength; i++) {
-                    if (!revealedHints.includes(i)) {
-                        eligibleIndices.push(i);
-                    }
-                }
+                for (let i = 0; i < wordLength; i++) { if (!revealedHints.includes(i)) eligibleIndices.push(i); }
             }
 
             if (eligibleIndices.length > 0) {
-                let nextHintIndex = eligibleIndices[0];
-                revealedHints.push(nextHintIndex);
+                revealedHints.push(eligibleIndices[0]);
                 playSound('hint');
                 showMessage(`Nieuwe poging! Extra hint gekregen ✨`);
             } else {
@@ -672,16 +553,8 @@
 
         function changeWordLength(len) {
             const buttons = document.querySelectorAll('.btn-group .btn');
-            buttons.forEach(btn => {
-                if (btn.innerText.includes(len.toString())) {
-                    btn.classList.add('active');
-                } else {
-                    btn.classList.remove('active');
-                }
-            });
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
+            buttons.forEach(btn => btn.classList.toggle('active', btn.innerText.includes(len.toString())));
+            if (document.activeElement) document.activeElement.blur();
             initGame(len);
         }
 
@@ -689,24 +562,12 @@
             if (!gameActive || isAnimating) return;
 
             if (key === 'backspace') {
-                if (currentGuess.length > 0) {
-                    currentGuess.pop();
-                    playSound('backspace');
-                    updateRowUI();
-                }
+                if (currentGuess.length > 0) { currentGuess.pop(); playSound('backspace'); updateRowUI(); }
             } else if (key === 'enter') {
-                if (currentGuess.length === wordLength) {
-                    checkGuess();
-                } else {
-                    showMessage(`Woord moet exact ${wordLength} letters lang zijn.`, true);
-                    playSound('error');
-                }
+                if (currentGuess.length === wordLength) checkGuess();
+                else { showMessage(`Woord moet exact ${wordLength} letters lang zijn.`, true); playSound('error'); }
             } else if (/^[a-z]$/.test(key)) {
-                if (currentGuess.length < wordLength) {
-                    currentGuess.push(key);
-                    playSound('type');
-                    updateRowUI();
-                }
+                if (currentGuess.length < wordLength) { currentGuess.push(key); playSound('type'); updateRowUI(); }
             }
         }
 
@@ -722,23 +583,9 @@
                     cell.classList.add('pop');
                     setTimeout(() => cell.classList.remove('pop'), 100);
                 } else {
-                    let isHint = false;
-                    let hintChar = '';
-
-                    if (currentAttempt < 5) {
-                        if (c === 0 || lastRowCorrect.includes(c)) {
-                            hintChar = secretWord[c];
-                            isHint = true;
-                        }
-                    } else {
-                        if (revealedHints.includes(c) || lastRowCorrect.includes(c)) {
-                            hintChar = secretWord[c];
-                            isHint = true;
-                        }
-                    }
-
+                    let isHint = (currentAttempt < 5) ? (c === 0 || lastRowCorrect.includes(c)) : (revealedHints.includes(c) || lastRowCorrect.includes(c));
                     if (isHint) {
-                        cell.innerText = hintChar;
+                        cell.innerText = secretWord[c];
                         cell.classList.add('hint-letter');
                     } else {
                         cell.innerText = '';
@@ -760,18 +607,14 @@
                 if (guessLetters[i] === secretLetters[i]) {
                     rowResults[i] = 'correct';
                     currentRowCorrect.push(i); 
-                    secretLetters[i] = null;
-                    guessLetters[i] = null;
+                    secretLetters[i] = null; guessLetters[i] = null;
                 }
             }
 
             for (let i = 0; i < wordLength; i++) {
                 if (guessLetters[i] !== null) {
                     const index = secretLetters.indexOf(guessLetters[i]);
-                    if (index !== -1) {
-                        rowResults[i] = 'present';
-                        secretLetters[index] = null;
-                    }
+                    if (index !== -1) { rowResults[i] = 'present'; secretLetters[index] = null; }
                 }
             }
 
@@ -779,36 +622,30 @@
             for (let i = 0; i < wordLength; i++) {
                 const cell = document.getElementById(`cell-${currentAttempt}-${i}`);
                 if (!cell) continue;
-                const status = rowResults[i];
-                const letter = currentGuess[i];
-
                 setTimeout(() => {
-                    cell.innerText = letter;
+                    cell.innerText = currentGuess[i];
                     cell.classList.remove('hint-letter');
-                    cell.classList.add('reveal');
-                    cell.classList.add(status);
-                    playSound(status);
+                    cell.classList.add('reveal', rowResults[i]);
+                    playSound(rowResults[i]);
                 }, delay);
-
                 delay += 150;
             }
 
             setTimeout(() => {
                 if (guess === secretWord) {
-                    showEndGameModal(true);
+                    // Variabele puntentelling verwerken
+                    let pointsEarned = (wordLength === 10) ? 5 : 1;
+                    scores[currentTeam] += pointsEarned;
+                    
+                    document.getElementById('score-a').innerText = scores.A;
+                    document.getElementById('score-b').innerText = scores.B;
+
+                    showEndGameModal(true, pointsEarned);
                     isAnimating = false;
                 } else {
-                    currentRowCorrect.forEach(idx => {
-                        if (!lastRowCorrect.includes(idx)) {
-                            lastRowCorrect.push(idx);
-                        }
-                    });
-
+                    currentRowCorrect.forEach(idx => { if (!lastRowCorrect.includes(idx)) lastRowCorrect.push(idx); });
                     currentAttempt++;
-                    if (currentAttempt >= totalAttempts) {
-                        addExtraRow();
-                    }
-                    
+                    if (currentAttempt >= totalAttempts) addExtraRow();
                     currentGuess = [];
                     updateRowUI();
                     isAnimating = false;
@@ -819,54 +656,33 @@
         function showMessage(msg, isError = false) {
             const msgEl = document.getElementById('message');
             msgEl.innerText = msg;
-            if (isError) {
-                msgEl.classList.add('error');
-                setTimeout(() => msgEl.classList.remove('error'), 400);
-            }
+            if (isError) { msgEl.classList.add('error'); setTimeout(() => msgEl.classList.remove('error'), 400); }
         }
 
-        function clearMessage() {
-            document.getElementById('message').innerText = '';
-        }
+        function clearMessage() { document.getElementById('message').innerText = ''; }
 
-        function showEndGameModal(isWin) {
+        function showEndGameModal(isWin, points) {
             gameActive = false;
             const modalOverlay = document.getElementById('status-modal');
-            const title = document.getElementById('modal-title');
             const desc = document.getElementById('modal-desc');
-            const wordReveal = document.getElementById('modal-word');
+            document.getElementById('modal-word').innerText = secretWord.toUpperCase();
 
-            wordReveal.innerText = secretWord.toUpperCase();
-
-            if (isWin) {
-                title.innerText = "GEWONNEN! 🎉";
-                title.className = "modal-title win";
-                desc.innerText = `Super gedaan! Je raadde het woord binnen ${currentAttempt + 1} pogingen.`;
-                playSound('win');
-            }
-
+            desc.innerText = `Team ${currentTeam} scoort +${points} ${points === 1 ? 'punt' : 'punten'}!`;
+            playSound('win');
             modalOverlay.classList.add('active');
         }
 
         function closeModalAndRestart() {
             document.getElementById('status-modal').classList.remove('active');
-            if (document.activeElement) {
-                document.activeElement.blur();
-            }
             initGame(wordLength);
         }
 
         window.addEventListener('keydown', (e) => {
             if (e.metaKey || e.ctrlKey || e.altKey) return;
             const key = e.key.toLowerCase();
-            if (key === 'enter') {
-                e.preventDefault(); 
-                handleKeyPress('enter');
-            } else if (key === 'backspace') {
-                handleKeyPress('backspace');
-            } else {
-                handleKeyPress(key);
-            }
+            if (key === 'enter') { e.preventDefault(); handleKeyPress('enter'); }
+            else if (key === 'backspace') handleKeyPress('backspace');
+            else handleKeyPress(key);
         });
 
         fetchWordsCSV();
