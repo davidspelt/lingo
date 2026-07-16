@@ -374,12 +374,10 @@
 <body>
 
     <div class="game-container">
-        <!-- Header -->
         <div class="header">
             <h1>LIN<span>GO</span></h1>
         </div>
 
-        <!-- Controls / Mode Selection -->
         <div class="controls">
             <div class="btn-group">
                 <button class="btn active" onclick="changeWordLength(5)">5 Letters</button>
@@ -391,18 +389,15 @@
             </button>
         </div>
 
-        <!-- Game Board -->
         <div class="board-container" id="board-container">
             <div id="board" class="board"></div>
         </div>
 
-        <!-- Toast / Message area -->
         <div class="message-container">
             <div id="message" class="message"></div>
         </div>
     </div>
 
-    <!-- Game Status Modal -->
     <div id="status-modal" class="modal-overlay">
         <div class="modal">
             <div id="modal-title" class="modal-title">GEWONNEN!</div>
@@ -582,7 +577,31 @@
             }
 
             const cleanAvailable = wordsData[wordLength].filter(w => w.length === wordLength);
-            secretWord = cleanAvailable[Math.floor(Math.random() * cleanAvailable.length)];
+            
+            // --- UNIEKE WOORDEN CACHE LOGICA ---
+            let usedWords = [];
+            try {
+                usedWords = JSON.parse(localStorage.getItem('lingo_used_words_' + wordLength)) || [];
+            } catch (e) {
+                usedWords = [];
+            }
+
+            // Filter reeds gebruikte woorden eruit
+            let unusedWords = cleanAvailable.filter(w => !usedWords.includes(w));
+
+            // Als alle woorden op zijn, reset de geschiedenis voor deze lengte
+            if (unusedWords.length === 0) {
+                usedWords = [];
+                unusedWords = cleanAvailable;
+            }
+
+            // Pak een willekeurig ongebruikt woord
+            secretWord = unusedWords[Math.floor(Math.random() * unusedWords.length)];
+
+            // Sla het nieuw gekozen woord op in de cache geschiedenis
+            usedWords.push(secretWord);
+            localStorage.setItem('lingo_used_words_' + wordLength, JSON.stringify(usedWords));
+            // -------------------------------------
             
             currentAttempt = 0;
             totalAttempts = 5; // We starten altijd met 5 standaardrijen
