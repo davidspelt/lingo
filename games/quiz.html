@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Deluxe</title>
+    <style>
+        :root {
+            --bg-dark: #0a0e17;
+            --bg-card: #141b29;
+            --primary: #e43f5a;
+            --primary-glow: rgba(228, 63, 90, 0.4);
+            --correct: #e43f5a;
+            --present: #ffb100;
+            --absent: #1f293d;
+            --cell-border: #2c3a57;
+            --text-light: #ffffff;
+            --text-muted: #7e8fa8;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 750px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: var(--bg-card);
+            padding: 40px;
+            border-radius: 24px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin: 20px 0;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 25px;
+        }
+
+        h1 {
+            font-size: 3.5rem;
+            font-weight: 900;
+            letter-spacing: 8px;
+            color: #ffffff;
+            text-shadow: 0 0 15px var(--primary-glow), 0 0 30px var(--primary-glow);
+            margin-bottom: 5px;
+            display: inline-block;
+        }
+
+        h1 span {
+            color: var(--primary);
+        }
+
+        .stats-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            border-bottom: 2px solid var(--cell-border);
+            padding-bottom: 10px;
+        }
+
+        .stats-bar span span {
+            color: var(--text-light);
+        }
+
+        /* Mode / Category Buttons */
+        .controls {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            width: 100%;
+        }
+
+        .btn-group {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            width: 100%;
+        }
+
+        @media (max-width: 500px) {
+            .btn-group {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .btn {
+            width: 100%;
+            padding: 14px;
+            font-size: 1rem;
+            font-weight: 700;
+            border: 2px solid var(--cell-border);
+            background-color: var(--bg-dark);
+            color: var(--text-light);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            box-shadow: 0 0 10px var(--primary-glow);
+            transform: translateY(-2px);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn.active {
+            background-color: var(--primary);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px var(--primary-glow);
+        }
+
+        /* Sound Control */
+        .sound-toggle {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: color 0.2s;
+            margin-top: 5px;
+        }
+
+        .sound-toggle:hover {
+            color: var(--text-light);
+        }
+
+        /* Quiz Main Area */
+        .quiz-area {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .question-card {
+            background-color: var(--bg-dark);
+            border: 3px solid var(--cell-border);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            line-height: 1.5;
+            min-height: 120px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
+        }
+
+        /* Answers Layout */
+        .answers-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            width: 100%;
+        }
+
+        @media (max-width: 600px) {
+            .answers-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .answer-btn {
+            background-color: var(--bg-dark);
+            border: 3px solid var(--cell-border);
+            border-radius: 14px;
+            padding: 20px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-light);
+            cursor: pointer;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            transition: transform 0.1s ease, background-color 0.3s ease, border-color 0.3s ease;
+            position: relative;
+        }
+
+        .answer-btn .prefix {
+            background-color: var(--cell-border);
+            color: var(--text-muted);
+            width: 32px;
+            height: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 50%;
+            font-weight: 800;
+            flex-shrink: 0;
+            transition: all 0.3s ease;
+        }
+
+        /* Hover state when active */
+        .answer-btn:not(:disabled):hover {
+            border-color: var(--present);
+            transform: translateY(-2px);
+            box-shadow: 0 0 10px rgba(255, 177, 0, 0.2);
+        }
+
+        .answer-btn:not(:disabled):hover .prefix {
+            background-color: var(--present);
+            color: #0a0e17;
+        }
+
+        /* Lingo evaluation classes */
+        .answer-btn.selected {
+            background-color: var(--present);
+            border-color: var(--present);
+            color: #0a0e17;
+            box-shadow: 0 0 15px rgba(255, 177, 0, 0.5);
+        }
+        .answer-btn.selected .prefix {
+            background-color: #0a0e17;
+            color: var(--present);
+        }
+
+        .answer-btn.correct {
+            background-color: var(--correct);
+            border-color: var(--correct);
+            color: #ffffff;
+            box-shadow: 0 0 15px rgba(228, 63, 90, 0.6);
+            animation: popEffect 0.3s ease;
+        }
+        .answer-btn.correct .prefix {
+            background-color: #ffffff;
+            color: var(--correct);
+        }
+
+        .answer-btn.wrong {
+            background-color: var(--absent);
+            border-color: var(--absent);
+            color: var(--text-muted);
+            opacity: 0.6;
+        }
+        .answer-btn.wrong .prefix {
+            background-color: #0a0e17;
+            color: var(--text-muted);
+        }
+
+        @keyframes popEffect {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        /* Feedback Message */
+        .message-container {
+            height: 40px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .message {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--text-light);
+            text-align: center;
+            padding: 5px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        /* Custom Modal Dialog */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(5, 7, 12, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal {
+            background-color: var(--bg-card);
+            border: 3px solid var(--primary);
+            border-radius: 20px;
+            padding: 35px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+            box-shadow: 0 10px 40px rgba(228, 63, 90, 0.3);
+            transform: scale(0.8);
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-title {
+            font-size: 2.2rem;
+            font-weight: 900;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+        }
+
+        .modal-title.finish {
+            color: var(--present);
+            text-shadow: 0 0 15px rgba(255, 177, 0, 0.4);
+        }
+
+        .modal-body {
+            font-size: 1.2rem;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .score-reveal {
+            font-size: 2.5rem;
+            font-weight: 800;
+            color: #ffffff;
+            background-color: #0b0c10;
+            padding: 10px 25px;
+            border-radius: 10px;
+            margin: 15px 0;
+            display: inline-block;
+            border: 2px solid var(--cell-border);
+        }
+
+        @media (max-height: 700px) {
+            h1 { font-size: 2.5rem; }
+            .game-container { padding: 25px; }
+            .question-card { padding: 20px; font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container">
+        <div class="header">
+            <h1>QUIZ<span>_</span></h1>
+        </div>
+
+        <div class="controls">
+            <div class="btn-group" id="category-group">
+                </div>
+            <button class="sound-toggle" onclick="toggleSound()">
+                <span id="sound-icon">🔊</span> Geluid: <span id="sound-status">AAN</span>
+            </button>
+        </div>
+
+        <div class="stats-bar">
+            <span>Vraag: <span id="current-question-num">0/0</span></span>
+            <span>Score: <span id="current-score-num">0</span></span>
+        </div>
+
+        <div class="quiz-area">
+            <div class="question-card" id="question-text">
+                Kies hierboven een categorie om de quiz te starten!
+            </div>
+            <div class="answers-grid" id="answers-grid">
+                </div>
+        </div>
+
+        <div class="message-container">
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <div id="status-modal" class="modal-overlay">
+        <div class="modal">
+            <div id="modal-title" class="modal-title finish">RONDE UIT! 🎉</div>
+            <div class="modal-body">
+                <p id="modal-desc">Je hebt alle vragen beantwoord. Dit is je eindscore:</p>
+                <div id="modal-score" class="score-reveal">0 / 0</div>
+            </div>
+            <button class="btn active" onclick="closeModal()" style="max-width: 250px; margin: 0 auto;">Kies Nieuwe Categorie</button>
+        </div>
+    </div>
+
+    <script>
+        // Ingebouwde back-up JSON data (Nederlands)
+        const defaultQuizData = {
+            "merken": [
+                {"question": "Welk sportmerk heeft een logo dat bekend staat als de 'Swoosh'?", "answers": ["Adidas", "Puma", "Nike", "Reebok"], "correct": 2},
+                {"question": "Uit welk land komt het bekende meubelmerk IKEA?", "answers": ["Denemarken", "Zweden", "Noorwegen", "Finland"], "correct": 1},
+                {"question": "Welke tech-gigant produceerde oorspronkelijk speelkaarten?", "answers": ["Nintendo", "Sony", "Apple", "Sega"], "correct": 0}
+            ],
+            "geografie": [
+                {"question": "Wat is de hoofdstad van Australië?", "answers": ["Sydney", "Melbourne", "Canberra", "Brisbane"], "correct": 2},
+                {"question": "Welke rivier stroomt er dwars door de stad Parijs?", "answers": ["De Loire", "De Seine", "De Rhône", "De Rijn"], "correct": 1},
+                {"question": "Wat is het grootste land ter wereld qua oppervlakte?", "answers": ["Canada", "Verenigde Staten", "China", "Rusland"], "correct": 3}
+            ],
+            "spellen": [
+                {"question": "In welk populair spel vechten 100 spelers op een eiland tot er één overleeft?", "answers": ["Minecraft", "Fortnite", "Apex Legends", "PUBG"], "correct": 1},
+                {"question": "Hoeveel vakjes heeft een standaard schaakbord?", "answers": ["36", "48", "64", "81"], "correct": 2},
+                {"question": "Welk personage is de iconische mascotte van SEGA?", "answers": ["Mario", "Crash Bandicoot", "Sonic the Hedgehog", "Pac-Man"], "correct": 2}
+            ],
+            "films": [
+                {"question": "Wie speelde de hoofdrol van Jack Dawson in de klassieker Titanic?", "answers": ["Brad Pitt", "Leonardo DiCaprio", "Matt Damon", "Johnny Depp"], "correct": 1},
+                {"question": "Welke filmreeks bevat personages genaamd 'Hobbits'?", "answers": ["Star Wars", "Harry Potter", "The Lord of the Rings", "The Chronicles of Narnia"], "correct": 2},
+                {"question": "Hoeveel Oscars won de film 'Avatar' (2009) in totaal?", "answers": ["3", "5", "7", "11"], "correct": 0}
+            ]
+        };
+
+        let quizData = JSON.parse(JSON.stringify(defaultQuizData));
+        let activeCategory = "";
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let soundEnabled = true;
+        let isEvaluating = false;
+
+        // Web Audio API Synthesizer (Overgenomen uit Lingo)
+        let audioCtx = null;
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            try {
+                initAudio();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+
+                if (type === 'click') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(500, now);
+                    gain.gain.setValueAtTime(0.05, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                    osc.start(now);
+                    osc.stop(now + 0.08);
+                } else if (type === 'correct') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now);
+                    osc.stop(now + 0.15);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(150, now);
+                    osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+                    osc.start(now);
+                    osc.stop(now + 0.25);
+                } else if (type === 'win') {
+                    const notes = [523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const o = audioCtx.createOscillator();
+                        const g = audioCtx.createGain();
+                        o.connect(g);
+                        g.connect(audioCtx.destination);
+                        o.frequency.setValueAtTime(freq, now + (idx * 0.12));
+                        g.gain.setValueAtTime(0.1, now + (idx * 0.12));
+                        g.gain.exponentialRampToValueAtTime(0.001, now + (idx * 0.12) + 0.4);
+                        o.start(now + (idx * 0.12));
+                        o.stop(now + (idx * 0.12) + 0.45);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio play error", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            document.getElementById('sound-status').innerText = soundEnabled ? "AAN" : "UIT";
+            document.getElementById('sound-icon').innerText = soundEnabled ? "🔊" : "🔇";
+            if (soundEnabled) {
+                initAudio();
+                playSound('click');
+            }
+            if (document.activeElement) document.activeElement.blur();
+        }
+
+        // Externe JSON inladen via fetch (net als de csv in Lingo)
+        async function fetchQuizJSON() {
+            try {
+                const response = await fetch('vragen.json');
+                if (!response.ok) throw new Error("JSON bestand niet gevonden.");
+                const data = await response.json();
+                if (Object.keys(data).length > 0) {
+                    quizData = data;
+                    console.log("Quizvragen succesvol ingeladen vanuit vragen.json!");
+                }
+            } catch (error) {
+                console.warn("Kon vragen.json niet laden, we vallen terug op de ingebouwde vragen. Reden:", error.message);
+            } finally {
+                buildCategoryButtons();
+            }
+        }
+
+        // Genereer de categorie knoppen op basis van de JSON keys
+        function buildCategoryButtons() {
+            const container = document.getElementById('category-group');
+            container.innerHTML = '';
+            Object.keys(quizData).forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = 'btn';
+                btn.id = `cat-btn-${cat}`;
+                btn.innerText = cat;
+                btn.onclick = () => startCategory(cat);
+                container.appendChild(btn);
+            });
+        }
+
+        // Start een specifieke quizronde
+        function startCategory(cat) {
+            if (isEvaluating) return;
+            activeCategory = cat;
+            currentQuestionIndex = 0;
+            score = 0;
+
+            // Update actieve knop stijl
+            document.querySelectorAll('#category-group .btn').forEach(btn => {
+                if(btn.id === `cat-btn-${cat}`) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+
+            if (document.activeElement) document.activeElement.blur();
+            loadQuestion();
+        }
+
+        // Laad de huidige vraag op het scherm
+        function loadQuestion() {
+            const questions = quizData[activeCategory];
+            document.getElementById('current-score-num').innerText = score;
+            document.getElementById('current-question-num').innerText = `${currentQuestionIndex + 1}/${questions.length}`;
+            document.getElementById('message').innerText = "";
+
+            const q = questions[currentQuestionIndex];
+            document.getElementById('question-text').innerText = q.question;
+
+            const answersGrid = document.getElementById('answers-grid');
+            answersGrid.innerHTML = '';
+
+            const prefixes = ["A", "B", "C", "D"];
+            q.answers.forEach((ans, idx) => {
+                const button = document.createElement('button');
+                button.className = 'answer-btn';
+                button.innerHTML = `<span class="prefix">${prefixes[idx]}</span> ${ans}`;
+                button.onclick = () => selectAnswer(idx);
+                answersGrid.appendChild(button);
+            });
+        }
+
+        // Verwerk het gekozen antwoord met Lingo-stijl evaluatievertraging
+        function selectAnswer(selectedIndex) {
+            if (isEvaluating) return;
+            isEvaluating = true;
+
+            const questions = quizData[activeCategory];
+            const q = questions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('.answers-grid .answer-btn');
+
+            // 1. Markeer direct als 'geselecteerd/geel' (Lingo Present look)
+            buttons[selectedIndex].classList.add('selected');
+            playSound('click');
+
+            // 2. Wacht heel even voor de spanning (net als de Lingo reveal)
+            setTimeout(() => {
+                buttons.forEach((btn, idx) => {
+                    btn.classList.remove('selected');
+                    btn.disabled = true; // Deactiveer alle knoppen
+
+                    if (idx === q.correct) {
+                        btn.classList.add('correct'); // Rood/Correct
+                    } else if (idx === selectedIndex) {
+                        btn.classList.add('wrong'); // Donker/Absent
+                    } else {
+                        btn.classList.add('wrong');
+                    }
+                });
+
+                if (selectedIndex === q.correct) {
+                    score++;
+                    playSound('correct');
+                    document.getElementById('message').innerText = "Correct! +1 Punt ✨";
+                } else {
+                    playSound('wrong');
+                    document.getElementById('message').innerText = "Helaas, niet juist! 🧩";
+                }
+                document.getElementById('current-score-num').innerText = score;
+
+                // 3. Ga na een korte pauze door naar de volgende vraag of eindscherm
+                setTimeout(() => {
+                    currentQuestionIndex++;
+                    if (currentQuestionIndex < questions.length) {
+                        loadQuestion();
+                        isEvaluating = false;
+                    } else {
+                        showEndModal();
+                    }
+                }, 1500);
+
+            }, 800);
+        }
+
+        function showEndModal() {
+            const questions = quizData[activeCategory];
+            document.getElementById('modal-score').innerText = `${score} / ${questions.length}`;
+            document.getElementById('status-modal').classList.add('active');
+            playSound('win');
+        }
+
+        function closeModal() {
+            document.getElementById('status-modal').classList.remove('active');
+            document.querySelectorAll('#category-group .btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('question-text').innerText = "Kies hierboven een categorie om een nieuwe quiz te starten!";
+            document.getElementById('answers-grid').innerHTML = '';
+            document.getElementById('current-question-num').innerText = "0/0";
+            document.getElementById('current-score-num').innerText = "0";
+            document.getElementById('message').innerText = "";
+            isEvaluating = false;
+        }
+
+        // Start met het laden van de JSON data
+        fetchQuizJSON();
+    </script>
+</body>
+</html>
