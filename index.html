@@ -589,10 +589,13 @@
             // Filter reeds gebruikte woorden eruit
             let unusedWords = cleanAvailable.filter(w => !usedWords.includes(w));
 
-            // Als alle woorden op zijn, reset de geschiedenis voor deze lengte
+            // Als alle woorden op zijn, herstart niet maar geef melding en stop het spel
             if (unusedWords.length === 0) {
-                usedWords = [];
-                unusedWords = cleanAvailable;
+                gameActive = false;
+                const board = document.getElementById('board');
+                board.innerHTML = '';
+                showMessage("Alle beschikbare woorden voor deze lengte zijn al geraden!", true);
+                return;
             }
 
             // Pak een willekeurig ongebruikt woord
