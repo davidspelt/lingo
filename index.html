@@ -39,7 +39,7 @@
 
         .game-container {
             width: 100%;
-            max-width: 600px;
+            max-width: 850px; /* Vergroot van 600px naar 850px zodat 10 letters ruim passen */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -191,26 +191,26 @@
             position: relative;
         }
 
-        /* Schaalregels op basis van aantal letters zodat 10 letters altijd perfect past */
+        /* Schaalregels op basis van aantal letters - Nu zijn 6 en 10 letters net zo groot als 5 letters */
         .board[data-letters="6"] .cell {
-            max-width: 55px;
-            font-size: 1.8rem;
-            border-radius: 10px;
+            max-width: 65px;
+            font-size: 2.2rem;
+            border-radius: 12px;
         }
 
         .board[data-letters="10"] {
-            gap: 6px;
+            gap: 10px;
         }
 
         .board[data-letters="10"] .row {
-            gap: 6px;
+            gap: 10px;
         }
 
         .board[data-letters="10"] .cell {
-            max-width: 40px;
-            font-size: 1.3rem;
-            border-width: 2px;
-            border-radius: 8px;
+            max-width: 65px;
+            font-size: 2.2rem;
+            border-width: 3px;
+            border-radius: 12px;
         }
 
         /* Cell animations */
