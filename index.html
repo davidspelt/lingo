@@ -191,6 +191,28 @@
             position: relative;
         }
 
+        /* Schaalregels op basis van aantal letters zodat 10 letters altijd perfect past */
+        .board[data-letters="6"] .cell {
+            max-width: 55px;
+            font-size: 1.8rem;
+            border-radius: 10px;
+        }
+
+        .board[data-letters="10"] {
+            gap: 6px;
+        }
+
+        .board[data-letters="10"] .row {
+            gap: 6px;
+        }
+
+        .board[data-letters="10"] .cell {
+            max-width: 40px;
+            font-size: 1.3rem;
+            border-width: 2px;
+            border-radius: 8px;
+        }
+
         /* Cell animations */
         .cell.pop {
             transform: scale(1.1);
@@ -577,6 +599,7 @@
             // Bouw spelbord
             const board = document.getElementById('board');
             board.innerHTML = '';
+            board.setAttribute('data-letters', length); // Dynamic styling trigger
             buildGridRows(0, totalAttempts);
         }
 
@@ -601,7 +624,7 @@
                                 isHint = true;
                             }
                         } else {
-                            if (revealedHints.includes(c)) {
+                            if (revealedHints.includes(c) || lastRowCorrect.includes(c)) {
                                 isHint = true;
                             }
                         }
@@ -622,11 +645,20 @@
             totalAttempts++;
             buildGridRows(totalAttempts - 1, totalAttempts);
             
-            // Zoek posities die nog niet als hint onthuld zijn
+            // Zoek posities die nog niet als hint onthuld zijn EN ook nog niet correct (rood) geraden waren
             let eligibleIndices = [];
             for (let i = 0; i < wordLength; i++) {
-                if (!revealedHints.includes(i)) {
+                if (!revealedHints.includes(i) && !lastRowCorrect.includes(i)) {
                     eligibleIndices.push(i);
+                }
+            }
+
+            // Fallback: mochten alle resterende posities al rood zijn, pakken we simpelweg de eerste nog niet onthulde hint
+            if (eligibleIndices.length === 0) {
+                for (let i = 0; i < wordLength; i++) {
+                    if (!revealedHints.includes(i)) {
+                        eligibleIndices.push(i);
+                    }
                 }
             }
 
@@ -712,8 +744,8 @@
                             isHint = true;
                         }
                     } else {
-                        // Na de 5e poging: Alleen de expliciet onthulde hints tonen (geeft precies 1 letter cadeau per extra beurt)
-                        if (revealedHints.includes(c)) {
+                        // Na de 5e poging: Toon de onthulde hints PLUS alle voorheen correct geraden letters
+                        if (revealedHints.includes(c) || lastRowCorrect.includes(c)) {
                             hintChar = secretWord[c];
                             isHint = true;
                         }
@@ -738,7 +770,7 @@
             const guessLetters = [...currentGuess];
             const rowResults = new Array(wordLength).fill('absent');
             
-            // Tijdelijke opslag voor correcte letterposities in deze poging
+            // Tijdelijke opslag voor correcte letterposities in deze specifieke poging
             let currentRowCorrect = [];
 
             // 1. Zoek naar perfecte overeenkomsten (correct / rood)
@@ -787,8 +819,14 @@
                     showEndGameModal(true);
                     isAnimating = false; // Ontgrendel keyboard
                 } else {
-                    // Update de correcte posities van alleen deze rij voor de volgende poging
-                    lastRowCorrect = currentRowCorrect;
+                    // Update de correcte posities voor de volgende poging
+                    // We voegen de nieuw ontdekte letters samen met de al eerder geraden letters
+                    currentRowCorrect.forEach(idx => {
+                        if (!lastRowCorrect.includes(idx)) {
+                            lastRowCorrect.push(idx);
+                        }
+                    });
+
                     currentAttempt++;
                     
                     // ALTIJD DOORGAAN MODE:
