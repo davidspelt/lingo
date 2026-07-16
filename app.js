@@ -3,55 +3,64 @@ let secretWord = "";
 let currentAttempt = 0;
 const maxAttempts = 5;
 let wordLength = 5;
+let currentGuess = [];
+let gameActive = false;
 
-// Laad de CSV in bij het opstarten
+const keyboardLayout = [
+    ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p"],
+    ["a", "s", "d", "f", "g", "h", "j", "k", "l"],
+    ["enter", "z", "x", "c", "v", "b", "n", "m", "backspace"]
+];
+
+// Stille lader voor de CSV
 async function loadWords() {
     try {
-        // We verwachten een CSV zonder headers, bijv: woord,lengte
         const response = await fetch('woorden.csv');
         const text = await response.text();
-        
-        // Simpele CSV parser (gaat uit van één woord per regel of 'woord,lengte')
         const lines = text.split('\n');
+        
         lines.forEach(line => {
             const cleanWord = line.split(',')[0].trim().toLowerCase();
             if ([5, 6, 10].includes(cleanWord.length)) {
                 wordsData[cleanWord.length].push(cleanWord);
             }
         });
-        
-        document.getElementById('message').innerText = "Woordenlijst geladen! Kies een lengte en start.";
+        // Start direct het eerste spel zodra de lijst binnen is
+        initGame(5);
     } catch (error) {
         console.error("Fout bij laden CSV:", error);
-        document.getElementById('message').innerText = "Kon woorden.csv niet laden. Gebruik je een lokale server?";
     }
 }
 
-function initGame() {
-    wordLength = parseInt(document.getElementById('length-select').value);
+function initGame(length) {
+    wordLength = length;
     const availableWords = wordsData[wordLength];
 
     if (!availableWords || availableWords.length === 0) {
-        document.getElementById('message').innerText = `Geen woorden gevonden voor lengte ${wordLength} in CSV.`;
+        document.getElementById('message').innerText = `Geen ${wordLength}-letterwoorden gevonden in woorden.csv.`;
         return;
     }
 
-    // Kies een willekeurig woord
     secretWord = availableWords[Math.floor(Math.random() * availableWords.length)];
     currentAttempt = 0;
+    currentGuess = [];
+    gameActive = true;
     
-    // Reset UI
+    document.getElementById('message').innerText = "Raad het woord! Typ live op je toetsenbord.";
+
+    // Update actieve knop styling
+    document.querySelectorAll('.mode-btn').forEach(btn => {
+        btn.classList.remove('active');
+        if (parseInt(btn.dataset.length) === length) {
+            btn.classList.add('active');
+        }
+    });
+
+    // Bouw het grid
     const board = document.getElementById('board');
     board.innerHTML = '';
-    
-    const input = document.getElementById('guess-input');
-    input.maxLength = wordLength;
-    input.value = '';
-    input.disabled = false;
-    document.getElementById('guess-btn').disabled = false;
-    document.getElementById('message').innerText = "Spel gestart! Raad het woord.";
+    board.setAttribute('data-letters', wordLength);
 
-    // Bouw het lege bord met de eerste letter alvast ingevuld op de eerste rij
     for (let r = 0; r < maxAttempts; r++) {
         const row = document.createElement('div');
         row.className = 'row';
@@ -59,40 +68,88 @@ function initGame() {
             const cell = document.createElement('div');
             cell.className = 'cell';
             cell.id = `cell-${r}-${c}`;
+            
+            // Eerste letter cadeau geven op de allereerste rij
             if (r === 0 && c === 0) {
-                cell.innerText = secretWord[0]; // Eerste letter cadeau
+                cell.innerText = secretWord[0];
             }
             row.appendChild(cell);
         }
         board.appendChild(row);
     }
-    input.focus();
+
+    buildKeyboard();
+}
+
+// Live toetsenbord input afvangen
+function handleKeyPress(key) {
+    if (!gameActive) return;
+
+    if (key === 'backspace') {
+        if (currentGuess.length > 0) {
+            currentGuess.pop();
+            updateRowUI();
+        }
+    } else if (key === 'enter') {
+        if (currentGuess.length === wordLength) {
+            checkGuess();
+        } else {
+            document.getElementById('message').innerText = `Woord moet ${wordLength} letters lang zijn.`;
+        }
+    } else if (/^[a-z]$/.test(key)) {
+        if (currentGuess.length < wordLength) {
+            currentGuess.push(key);
+            updateRowUI();
+        }
+    }
+}
+
+// Update de letters in de actieve rij tijdens het typen
+function updateRowUI() {
+    for (let c = 0; c < wordLength; c++) {
+        const cell = document.getElementById(`cell-${currentAttempt}-${c}`);
+        
+        // Zorg dat we de cadeau-letter of eerdere correcte letters niet visueel leegmaken als de gebruiker nog niks typte
+        if (currentGuess[c]) {
+            cell.innerText = currentGuess[c];
+            cell.classList.add('pop');
+            setTimeout(() => cell.classList.remove('pop'), 100);
+        } else {
+            // Val terug op logica: eerste rij positie 0 heeft altijd de eerste letter van het geheime woord als er niks getypt is
+            if (currentAttempt === 0 && c === 0) {
+                cell.innerText = secretWord[0];
+            } else {
+                // Check of de vorige poging hier een juiste letter had staan
+                if (currentAttempt > 0) {
+                    const prevCell = document.getElementById(`cell-${currentAttempt - 1}-${c}`);
+                    if (prevCell && prevCell.classList.contains('correct')) {
+                        cell.innerText = secretWord[c];
+                        continue;
+                    }
+                }
+                cell.innerText = '';
+            }
+        }
+    }
 }
 
 function checkGuess() {
-    const input = document.getElementById('guess-input');
-    const guess = input.value.toLowerCase().trim();
+    const guess = currentGuess.join('');
     const message = document.getElementById('message');
-
-    if (guess.length !== wordLength) {
-        message.innerText = `Het woord moet exact ${wordLength} letters lang zijn.`;
-        return;
-    }
-
     const secretLetters = secretWord.split('');
-    const guessLetters = guess.split('');
+    const guessLetters = [...currentGuess];
     const rowResults = new Array(wordLength).fill('absent');
 
-    // Stap 1: Check op juiste letters op de juiste plek (Rood)
+    // 1. Correcte letters (Rood)
     for (let i = 0; i < wordLength; i++) {
         if (guessLetters[i] === secretLetters[i]) {
             rowResults[i] = 'correct';
-            secretLetters[i] = null; // Voorkom dubbele telling
+            secretLetters[i] = null;
             guessLetters[i] = null;
         }
     }
 
-    // Stap 2: Check op juiste letters op de verkeerde plek (Geel/Cirkel)
+    // 2. Bestaande letters (Geel)
     for (let i = 0; i < wordLength; i++) {
         if (guessLetters[i] !== null) {
             const index = secretLetters.indexOf(guessLetters[i]);
@@ -103,17 +160,18 @@ function checkGuess() {
         }
     }
 
-    // Stap 3: Update de UI van de huidige rij
+    // 3. UI en Keyboard inkleuren
     for (let i = 0; i < wordLength; i++) {
         const cell = document.getElementById(`cell-${currentAttempt}-${i}`);
-        cell.innerText = guess[i];
+        cell.innerText = currentGuess[i];
         cell.classList.add(rowResults[i]);
+        
+        updateKeyboardKeyColor(currentGuess[i], rowResults[i]);
     }
 
-    // Check winst of verlies
     if (guess === secretWord) {
-        message.innerText = "Gefeliciteerd! Je hebt het woord geraden! 🎉";
-        endGame();
+        message.innerText = "Gefeliciteerd! Je hebt het geraden! 🎉";
+        gameActive = false;
         return;
     }
 
@@ -121,34 +179,67 @@ function checkGuess() {
 
     if (currentAttempt >= maxAttempts) {
         message.innerText = `Helaas! Het juiste woord was: ${secretWord.toUpperCase()}`;
-        endGame();
+        gameActive = false;
     } else {
-        // Vul de juiste letters van de vorige poging alvast in op de volgende rij (Lingo traditie)
-        for (let i = 0; i < wordLength; i++) {
-            const currentCell = document.getElementById(`cell-${currentAttempt}-${i}`);
-            const previousCell = document.getElementById(`cell-${currentAttempt - 1}-${i}`);
-            if (previousCell.classList.contains('correct')) {
-                currentCell.innerText = secretWord[i];
-            }
-        }
-        input.value = '';
+        currentGuess = [];
         message.innerText = "";
+        // Vul automatisch de bekende rode letters in voor de volgende rij
+        updateRowUI();
     }
 }
 
-function endGame() {
-    document.getElementById('guess-input').disabled = true;
-    document.getElementById('guess-btn').disabled = true;
+// Keyboard genereren
+function buildKeyboard() {
+    const kbContainer = document.getElementById('keyboard');
+    kbContainer.innerHTML = '';
+
+    keyboardLayout.forEach(row => {
+        const rowDiv = document.createElement('div');
+        rowDiv.className = 'keyboard-row';
+        
+        row.forEach(key => {
+            const button = document.createElement('button');
+            button.innerText = key;
+            button.className = 'key';
+            button.id = `key-${key}`;
+            if (key === 'enter' || key === 'backspace') {
+                button.classList.add('wide');
+            }
+            button.addEventListener('click', () => handleKeyPress(key));
+            rowDiv.appendChild(button);
+        });
+        kbContainer.appendChild(rowDiv);
+    });
 }
 
-// Event Listeners
-document.getElementById('start-btn').addEventListener('click', initGame);
-document.getElementById('guess-btn').addEventListener('click', checkGuess);
-document.getElementById('guess-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter' && !document.getElementById('guess-btn').disabled) {
-        checkGuess();
+function updateKeyboardKeyColor(letter, status) {
+    const keyBtn = document.getElementById(`key-${letter}`);
+    if (!keyBtn) return;
+
+    if (status === 'correct') {
+        keyBtn.className = 'key correct';
+    } else if (status === 'present' && !keyBtn.classList.contains('correct')) {
+        keyBtn.className = 'key present';
+    } else if (status === 'absent' && !keyBtn.classList.contains('correct') && !keyBtn.classList.contains('present')) {
+        keyBtn.className = 'key absent';
     }
+}
+
+// Event Listeners voor fysiek toetsenbord
+window.addEventListener('keydown', (e) => {
+    const key = e.key.toLowerCase();
+    if (key === 'enter') handleKeyPress('enter');
+    else if (key === 'backspace') handleKeyPress('backspace');
+    else handleKeyPress(key);
 });
 
-// Start met het laden van de woorden
+// Setup de keuzeknoppen bovenin
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+        const len = parseInt(e.target.dataset.length);
+        initGame(len);
+    });
+});
+
+// Start de app
 loadWords();
