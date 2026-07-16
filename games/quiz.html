@@ -86,7 +86,6 @@
             color: var(--text-light);
         }
 
-        /* Mode / Category Buttons */
         .controls {
             display: flex;
             flex-direction: column;
@@ -141,7 +140,6 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* Sound Control */
         .sound-toggle {
             background: none;
             border: none;
@@ -159,7 +157,6 @@
             color: var(--text-light);
         }
 
-        /* Quiz Main Area */
         .quiz-area {
             width: 100%;
             display: flex;
@@ -183,7 +180,6 @@
             box-shadow: inset 0 4px 10px rgba(0,0,0,0.3);
         }
 
-        /* Answers Layout */
         .answers-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -228,7 +224,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Hover state when active */
         .answer-btn:not(:disabled):hover {
             border-color: var(--present);
             transform: translateY(-2px);
@@ -240,7 +235,6 @@
             color: #0a0e17;
         }
 
-        /* Lingo evaluation classes */
         .answer-btn.selected {
             background-color: var(--present);
             border-color: var(--present);
@@ -281,7 +275,6 @@
             100% { transform: scale(1); }
         }
 
-        /* Feedback Message */
         .message-container {
             height: 40px;
             margin-top: 15px;
@@ -300,7 +293,6 @@
             transition: all 0.3s ease;
         }
 
-        /* Custom Modal Dialog */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -385,8 +377,7 @@
         </div>
 
         <div class="controls">
-            <div class="btn-group" id="category-group">
-                </div>
+            <div class="btn-group" id="category-group"></div>
             <button class="sound-toggle" onclick="toggleSound()">
                 <span id="sound-icon">🔊</span> Geluid: <span id="sound-status">AAN</span>
             </button>
@@ -401,8 +392,7 @@
             <div class="question-card" id="question-text">
                 Kies hierboven een categorie om de quiz te starten!
             </div>
-            <div class="answers-grid" id="answers-grid">
-                </div>
+            <div class="answers-grid" id="answers-grid"></div>
         </div>
 
         <div class="message-container">
@@ -422,7 +412,6 @@
     </div>
 
     <script>
-        // Ingebouwde back-up JSON data (Nederlands)
         const defaultQuizData = {
             "merken": [
                 {"question": "Welk sportmerk heeft een logo dat bekend staat als de 'Swoosh'?", "answers": ["Adidas", "Puma", "Nike", "Reebok"], "correct": 2},
@@ -453,7 +442,6 @@
         let soundEnabled = true;
         let isEvaluating = false;
 
-        // Web Audio API Synthesizer (Overgenomen uit Lingo)
         let audioCtx = null;
         function initAudio() {
             if (!audioCtx) {
@@ -480,7 +468,7 @@
                     osc.stop(now + 0.08);
                 } else if (type === 'correct') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(523.25, now); 
                     gain.gain.setValueAtTime(0.1, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                     osc.start(now);
@@ -523,7 +511,6 @@
             if (document.activeElement) document.activeElement.blur();
         }
 
-        // Externe JSON inladen via fetch (net als de csv in Lingo)
         async function fetchQuizJSON() {
             try {
                 const response = await fetch('vragen.json');
@@ -531,16 +518,15 @@
                 const data = await response.json();
                 if (Object.keys(data).length > 0) {
                     quizData = data;
-                    console.log("Quizvragen succesvol ingeladen vanuit vragen.json!");
+                    console.log("Quizvragen ingeladen vanuit vragen.json!");
                 }
             } catch (error) {
-                console.warn("Kon vragen.json niet laden, we vallen terug op de ingebouwde vragen. Reden:", error.message);
+                console.warn("Laden mislukt, we vallen terug op defaults:", error.message);
             } finally {
                 buildCategoryButtons();
             }
         }
 
-        // Genereer de categorie knoppen op basis van de JSON keys
         function buildCategoryButtons() {
             const container = document.getElementById('category-group');
             container.innerHTML = '';
@@ -554,14 +540,12 @@
             });
         }
 
-        // Start een specifieke quizronde
         function startCategory(cat) {
             if (isEvaluating) return;
             activeCategory = cat;
             currentQuestionIndex = 0;
             score = 0;
 
-            // Update actieve knop stijl
             document.querySelectorAll('#category-group .btn').forEach(btn => {
                 if(btn.id === `cat-btn-${cat}`) btn.classList.add('active');
                 else btn.classList.remove('active');
@@ -571,7 +555,6 @@
             loadQuestion();
         }
 
-        // Laad de huidige vraag op het scherm
         function loadQuestion() {
             const questions = quizData[activeCategory];
             document.getElementById('current-score-num').innerText = score;
@@ -594,7 +577,6 @@
             });
         }
 
-        // Verwerk het gekozen antwoord met Lingo-stijl evaluatievertraging
         function selectAnswer(selectedIndex) {
             if (isEvaluating) return;
             isEvaluating = true;
@@ -603,20 +585,18 @@
             const q = questions[currentQuestionIndex];
             const buttons = document.querySelectorAll('.answers-grid .answer-btn');
 
-            // 1. Markeer direct als 'geselecteerd/geel' (Lingo Present look)
             buttons[selectedIndex].classList.add('selected');
             playSound('click');
 
-            // 2. Wacht heel even voor de spanning (net als de Lingo reveal)
             setTimeout(() => {
                 buttons.forEach((btn, idx) => {
                     btn.classList.remove('selected');
-                    btn.disabled = true; // Deactiveer alle knoppen
+                    btn.disabled = true; 
 
                     if (idx === q.correct) {
-                        btn.classList.add('correct'); // Rood/Correct
+                        btn.classList.add('correct'); 
                     } else if (idx === selectedIndex) {
-                        btn.classList.add('wrong'); // Donker/Absent
+                        btn.classList.add('wrong'); 
                     } else {
                         btn.classList.add('wrong');
                     }
@@ -632,7 +612,6 @@
                 }
                 document.getElementById('current-score-num').innerText = score;
 
-                // 3. Ga na een korte pauze door naar de volgende vraag of eindscherm
                 setTimeout(() => {
                     currentQuestionIndex++;
                     if (currentQuestionIndex < questions.length) {
@@ -664,7 +643,6 @@
             isEvaluating = false;
         }
 
-        // Start met het laden van de JSON data
         fetchQuizJSON();
     </script>
 </body>

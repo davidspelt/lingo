@@ -34,12 +34,12 @@
             justify-content: center;
             align-items: center;
             padding: 20px;
-            overflow-y: auto; /* Zorg dat we kunnen scrollen als het bord lang wordt */
+            overflow-y: auto;
         }
 
         .game-container {
             width: 100%;
-            max-width: 850px; /* Vergroot van 600px naar 850px zodat 10 letters ruim passen */
+            max-width: 850px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -70,7 +70,6 @@
             color: var(--primary);
         }
 
-        /* Mode Buttons */
         .controls {
             display: flex;
             flex-direction: column;
@@ -118,7 +117,6 @@
             box-shadow: 0 0 15px var(--primary-glow);
         }
 
-        /* Sound Control */
         .sound-toggle {
             background: none;
             border: none;
@@ -135,19 +133,17 @@
             color: var(--text-light);
         }
 
-        /* Board Styling */
         .board-container {
             width: 100%;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 15px 0;
-            max-height: 400px; /* Beperk de hoogte van het bord en laat het scrollen indien nodig */
+            max-height: 400px;
             overflow-y: auto;
             padding-right: 5px;
         }
 
-        /* Custom scrollbar voor het bord */
         .board-container::-webkit-scrollbar {
             width: 6px;
         }
@@ -191,7 +187,6 @@
             position: relative;
         }
 
-        /* Schaalregels op basis van aantal letters - Nu zijn 6 en 10 letters net zo groot als 5 letters */
         .board[data-letters="6"] .cell {
             max-width: 65px;
             font-size: 2.2rem;
@@ -213,7 +208,6 @@
             border-radius: 12px;
         }
 
-        /* Cell animations */
         .cell.pop {
             transform: scale(1.1);
             border-color: var(--primary);
@@ -230,7 +224,6 @@
             100% { transform: scaleY(1); }
         }
 
-        /* Lingo colors */
         .cell.correct {
             background-color: var(--correct);
             border-color: var(--correct);
@@ -257,7 +250,6 @@
             border-style: dashed;
         }
 
-        /* Feedback Message */
         .message-container {
             height: 40px;
             margin-top: 15px;
@@ -287,7 +279,6 @@
             40%, 80% { transform: translateX(6px); }
         }
 
-        /* Custom Modal Dialog */
         .modal-overlay {
             position: fixed;
             top: 0;
@@ -363,7 +354,6 @@
             border: 1px solid var(--cell-border);
         }
 
-        /* Adjustments for smaller heights */
         @media (max-height: 700px) {
             h1 { font-size: 2.5rem; }
             .cell { max-width: 50px; font-size: 1.6rem; }
@@ -410,7 +400,6 @@
     </div>
 
     <script>
-        // Ingebouwde back-up woordenlijst (Nederlands)
         const defaultWords = {
             5: ["water", "brood", "fiets", "stoel", "tafel", "bloem", "vogel", "groen", "blauw", "appel", "herfst", "zomer", "kabel", "jeugd", "graan", "schat", "draad", "vloer", "plant", "spoor", "trein", "krant", "feest", "storm", "grens", "piano", "brand", "kaart", "droom", "vlees"],
             6: ["banaan", "koffie", "tomaat", "school", "leraar", "winter", "wortel", "dromen", "geluid", "polder", "kasteel", "reizen", "boeken", "vriend", "muziek", "strand", "vlucht", "slapen", "zuster", "dokter", "keuken", "zolder", "wereld", "oranje", "vlieg", "penseel", "camera", "huizen", "glazen", "straten"],
@@ -420,18 +409,16 @@
         let wordsData = JSON.parse(JSON.stringify(defaultWords));
         let secretWord = "";
         let currentAttempt = 0;
-        let totalAttempts = 5; // Starten met standaard 5 rijen, maar dit kan nu oneindig groeien
+        let totalAttempts = 5; 
         let wordLength = 5;
         let currentGuess = [];
         let gameActive = false;
         let soundEnabled = true;
-        let isAnimating = false; // Input-lock flag om glitchy typgedrag te voorkomen
+        let isAnimating = false; 
         
-        // Hint tracking states
-        let revealedHints = []; // Booleans per letterpositie of het onthuld is als extra hint
-        let lastRowCorrect = []; // Correcte letter-indices uit de direct voorgaande rij
+        let revealedHints = []; 
+        let lastRowCorrect = []; 
 
-        // Web Audio API Synthesizer voor gave Lingo-geluidjes
         let audioCtx = null;
         function initAudio() {
             if (!audioCtx) {
@@ -474,14 +461,14 @@
                     osc.stop(now + 0.25);
                 } else if (type === 'correct') {
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(523.25, now); // C5
+                    osc.frequency.setValueAtTime(523.25, now); 
                     gain.gain.setValueAtTime(0.1, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                     osc.start(now);
                     osc.stop(now + 0.15);
                 } else if (type === 'present') {
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(440, now); // A4
+                    osc.frequency.setValueAtTime(440, now); 
                     gain.gain.setValueAtTime(0.1, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
                     osc.start(now);
@@ -494,7 +481,7 @@
                     osc.start(now);
                     osc.stop(now + 0.1);
                 } else if (type === 'win') {
-                    const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6
+                    const notes = [523.25, 659.25, 783.99, 1046.50]; 
                     notes.forEach((freq, idx) => {
                         const o = audioCtx.createOscillator();
                         const g = audioCtx.createGain();
@@ -507,7 +494,7 @@
                         o.stop(now + (idx * 0.12) + 0.45);
                     });
                 } else if (type === 'hint') {
-                    const notes = [587.33, 698.46, 880.00]; // D5, F5, A5
+                    const notes = [587.33, 698.46, 880.00]; 
                     notes.forEach((freq, idx) => {
                         const o = audioCtx.createOscillator();
                         const g = audioCtx.createGain();
@@ -534,15 +521,14 @@
                 playSound('type');
             }
             if (document.activeElement) {
-                document.activeElement.blur(); // Voorkom dat Enter-toets de knop opnieuw klikt
+                document.activeElement.blur();
             }
         }
 
-        // Automatische lader voor woorden.csv uit de map
         async function fetchWordsCSV() {
             try {
                 const response = await fetch('woorden.csv');
-                if (!response.ok) throw new Error("CSV bestand niet gevonden of niet bereikbaar.");
+                if (!response.ok) throw new Error("CSV bestand niet gevonden.");
                 const text = await response.text();
                 const lines = text.split('\n');
                 const customLists = { 5: [], 6: [], 10: [] };
@@ -558,16 +544,15 @@
 
                 if (count > 0) {
                     wordsData = customLists;
-                    console.log(`${count} woorden succesvol geladen uit woorden.csv!`);
+                    console.log(`${count} woorden geladen uit woorden.csv!`);
                 }
             } catch (error) {
-                console.warn("Kon woorden.csv niet inladen. We vallen geruisloos terug op de ingebouwde woordenlijst. Reden:", error.message);
+                console.warn("Laden mislukt, we vallen terug op defaults:", error.message);
             } finally {
                 initGame(wordLength);
             }
         }
 
-        // Spelinitialisatie
         function initGame(length) {
             wordLength = length;
             const availableWords = wordsData[wordLength];
@@ -578,7 +563,6 @@
 
             const cleanAvailable = wordsData[wordLength].filter(w => w.length === wordLength);
             
-            // --- UNIEKE WOORDEN CACHE LOGICA ---
             let usedWords = [];
             try {
                 usedWords = JSON.parse(localStorage.getItem('lingo_used_words_' + wordLength)) || [];
@@ -586,46 +570,37 @@
                 usedWords = [];
             }
 
-            // Filter reeds gebruikte woorden eruit
             let unusedWords = cleanAvailable.filter(w => !usedWords.includes(w));
 
-            // Als alle woorden op zijn, herstart niet maar geef melding en stop het spel
             if (unusedWords.length === 0) {
                 gameActive = false;
                 const board = document.getElementById('board');
                 board.innerHTML = '';
-                showMessage("Alle beschikbare woorden voor deze lengte zijn al geraden!", true);
+                showMessage("Alle beschikbare woorden zijn al geraden!", true);
                 return;
             }
 
-            // Pak een willekeurig ongebruikt woord
             secretWord = unusedWords[Math.floor(Math.random() * unusedWords.length)];
-
-            // Sla het nieuw gekozen woord op in de cache geschiedenis
             usedWords.push(secretWord);
             localStorage.setItem('lingo_used_words_' + wordLength, JSON.stringify(usedWords));
-            // -------------------------------------
             
             currentAttempt = 0;
-            totalAttempts = 5; // We starten altijd met 5 standaardrijen
-            isAnimating = false; // Reset lock
+            totalAttempts = 5; 
+            isAnimating = false; 
             
-            // Initialiseer hint en correct arrays
-            revealedHints = [0]; // Eerste letter altijd direct cadeau als hint
-            lastRowCorrect = []; // Geen voorgaande pogingen dus leeg
+            revealedHints = [0]; 
+            lastRowCorrect = []; 
             
             currentGuess = [];
             gameActive = true;
             clearMessage();
 
-            // Bouw spelbord
             const board = document.getElementById('board');
             board.innerHTML = '';
-            board.setAttribute('data-letters', length); // Dynamic styling trigger
+            board.setAttribute('data-letters', length); 
             buildGridRows(0, totalAttempts);
         }
 
-        // Generieke functie om rijen aan het grid toe te voegen
         function buildGridRows(startIndex, endIndex) {
             const board = document.getElementById('board');
             board.style.gridTemplateRows = `repeat(${endIndex}, 1fr)`;
@@ -638,7 +613,6 @@
                     cell.className = 'cell';
                     cell.id = `cell-${r}-${c}`;
                     
-                    // Geef de initiële hint letters cadeau op de actieve rij
                     if (r === currentAttempt) {
                         let isHint = false;
                         if (currentAttempt < 5) {
@@ -662,12 +636,10 @@
             }
         }
 
-        // Dynamisch een extra rij toevoegen aan het speelbord en exact één extra letter onthullen
         function addExtraRow() {
             totalAttempts++;
             buildGridRows(totalAttempts - 1, totalAttempts);
             
-            // Zoek posities die nog niet als hint onthuld zijn EN ook nog niet correct (rood) geraden waren
             let eligibleIndices = [];
             for (let i = 0; i < wordLength; i++) {
                 if (!revealedHints.includes(i) && !lastRowCorrect.includes(i)) {
@@ -675,7 +647,6 @@
                 }
             }
 
-            // Fallback: mochten alle resterende posities al rood zijn, pakken we simpelweg de eerste nog niet onthulde hint
             if (eligibleIndices.length === 0) {
                 for (let i = 0; i < wordLength; i++) {
                     if (!revealedHints.includes(i)) {
@@ -684,7 +655,6 @@
                 }
             }
 
-            // Geef exact één extra letter cadeau van links naar rechts
             if (eligibleIndices.length > 0) {
                 let nextHintIndex = eligibleIndices[0];
                 revealedHints.push(nextHintIndex);
@@ -694,7 +664,6 @@
                 showMessage(`Nieuwe poging! Blijf proberen! 💪`);
             }
 
-            // Scroll automatisch naar beneden in de board container om de nieuwe actieve rij te focussen
             setTimeout(() => {
                 const container = document.getElementById('board-container');
                 container.scrollTop = container.scrollHeight;
@@ -711,14 +680,13 @@
                 }
             });
             if (document.activeElement) {
-                document.activeElement.blur(); // Voorkom dat Enter-toets de knop opnieuw klikt
+                document.activeElement.blur();
             }
             initGame(len);
         }
 
-        // Toetsenbord Input Handler
         function handleKeyPress(key) {
-            if (!gameActive || isAnimating) return; // Geen input toestaan als we animeren of game is afgelopen
+            if (!gameActive || isAnimating) return;
 
             if (key === 'backspace') {
                 if (currentGuess.length > 0) {
@@ -742,7 +710,6 @@
             }
         }
 
-        // Update de actieve rij tijdens het typen
         function updateRowUI() {
             clearMessage();
             for (let c = 0; c < wordLength; c++) {
@@ -755,18 +722,15 @@
                     cell.classList.add('pop');
                     setTimeout(() => cell.classList.remove('pop'), 100);
                 } else {
-                    // Check of we hints moeten tonen
                     let isHint = false;
                     let hintChar = '';
 
                     if (currentAttempt < 5) {
-                        // Standaard Lingo: Eerste letter of correcte letter uit de vorige poging
                         if (c === 0 || lastRowCorrect.includes(c)) {
                             hintChar = secretWord[c];
                             isHint = true;
                         }
                     } else {
-                        // Na de 5e poging: Toon de onthulde hints PLUS alle voorheen correct geraden letters
                         if (revealedHints.includes(c) || lastRowCorrect.includes(c)) {
                             hintChar = secretWord[c];
                             isHint = true;
@@ -784,28 +748,23 @@
             }
         }
 
-        // Controleer het ingediende woord
         function checkGuess() {
-            isAnimating = true; // Vergrendel toetsenbord inputs tijdens de flip animaties
+            isAnimating = true; 
             const guess = currentGuess.join('');
             const secretLetters = secretWord.split('');
             const guessLetters = [...currentGuess];
             const rowResults = new Array(wordLength).fill('absent');
-            
-            // Tijdelijke opslag voor correcte letterposities in deze specifieke poging
             let currentRowCorrect = [];
 
-            // 1. Zoek naar perfecte overeenkomsten (correct / rood)
             for (let i = 0; i < wordLength; i++) {
                 if (guessLetters[i] === secretLetters[i]) {
                     rowResults[i] = 'correct';
-                    currentRowCorrect.push(i); // Sla de index op
+                    currentRowCorrect.push(i); 
                     secretLetters[i] = null;
                     guessLetters[i] = null;
                 }
             }
 
-            // 2. Zoek naar bestaande letters op andere plekken (present / geel)
             for (let i = 0; i < wordLength; i++) {
                 if (guessLetters[i] !== null) {
                     const index = secretLetters.indexOf(guessLetters[i]);
@@ -816,7 +775,6 @@
                 }
             }
 
-            // 3. Toon de resultaten letter voor letter met flip animatie
             let delay = 0;
             for (let i = 0; i < wordLength; i++) {
                 const cell = document.getElementById(`cell-${currentAttempt}-${i}`);
@@ -835,14 +793,11 @@
                 delay += 150;
             }
 
-            // Controleer status na de laatste flip animatie (met lichte padding)
             setTimeout(() => {
                 if (guess === secretWord) {
                     showEndGameModal(true);
-                    isAnimating = false; // Ontgrendel keyboard
+                    isAnimating = false;
                 } else {
-                    // Update de correcte posities voor de volgende poging
-                    // We voegen de nieuw ontdekte letters samen met de al eerder geraden letters
                     currentRowCorrect.forEach(idx => {
                         if (!lastRowCorrect.includes(idx)) {
                             lastRowCorrect.push(idx);
@@ -850,20 +805,17 @@
                     });
 
                     currentAttempt++;
-                    
-                    // ALTIJD DOORGAAN MODE:
                     if (currentAttempt >= totalAttempts) {
                         addExtraRow();
                     }
                     
                     currentGuess = [];
                     updateRowUI();
-                    isAnimating = false; // Ontgrendel keyboard
+                    isAnimating = false;
                 }
             }, delay + 200);
         }
 
-        // Toon notificaties / fouten
         function showMessage(msg, isError = false) {
             const msgEl = document.getElementById('message');
             msgEl.innerText = msg;
@@ -877,7 +829,6 @@
             document.getElementById('message').innerText = '';
         }
 
-        // Eindscherm Modals
         function showEndGameModal(isWin) {
             gameActive = false;
             const modalOverlay = document.getElementById('status-modal');
@@ -897,21 +848,19 @@
             modalOverlay.classList.add('active');
         }
 
-        // Herstart het spel
         function closeModalAndRestart() {
             document.getElementById('status-modal').classList.remove('active');
             if (document.activeElement) {
-                document.activeElement.blur(); // Voorkom dat de Enter-toets direct nogmaals herstart
+                document.activeElement.blur();
             }
             initGame(wordLength);
         }
 
-        // Fysieke toetsenbord luisteraar
         window.addEventListener('keydown', (e) => {
             if (e.metaKey || e.ctrlKey || e.altKey) return;
             const key = e.key.toLowerCase();
             if (key === 'enter') {
-                e.preventDefault(); // Voorkomt dat focused elementen per ongeluk geactiveerd worden!
+                e.preventDefault(); 
                 handleKeyPress('enter');
             } else if (key === 'backspace') {
                 handleKeyPress('backspace');
@@ -920,7 +869,6 @@
             }
         });
 
-        // Start met het laden van woorden.csv (en valt indien nodig terug op de defaults)
         fetchWordsCSV();
     </script>
 </body>
