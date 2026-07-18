@@ -3,277 +3,89 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Hub - Team Selectie</title>
+    <title>Party Games Hub</title>
+    <link rel="stylesheet" href="style.css">
     <style>
-        :root {
-            --bg-dark: #0a0e17;
-            --bg-card: #141b29;
-            --primary: #e43f5a;
-            --primary-glow: rgba(228, 63, 90, 0.4);
-            --correct: #e43f5a;
-            --present: #ffb100;
-            --absent: #1f293d;
-            --cell-border: #2c3a57;
-            --text-light: #ffffff;
-            --text-muted: #7e8fa8;
-        }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif; }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            min-height: 100vh;
+        .hub-menu {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-            overflow-y: auto;
-        }
-
-        .hub-container {
-            width: 100%;
-            max-width: 600px;
-            background-color: var(--bg-card);
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            text-align: center;
-        }
-
-        h1 {
-            font-size: 3rem;
-            font-weight: 900;
-            letter-spacing: 4px;
-            text-shadow: 0 0 15px var(--primary-glow);
-            margin-bottom: 30px;
-        }
-        h1 span { color: var(--primary); }
-
-        .section {
-            margin-bottom: 30px;
-            padding-bottom: 25px;
-            border-bottom: 2px solid var(--cell-border);
-            text-align: left;
-        }
-
-        label {
-            display: block;
-            font-size: 1.1rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            color: var(--text-muted);
-            text-transform: uppercase;
-        }
-
-        .input-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 15px;
-            background-color: var(--bg-dark);
-            border: 2px solid var(--cell-border);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 600;
-            transition: border-color 0.2s;
-        }
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-        }
-
-        .btn {
-            padding: 15px 25px;
-            font-size: 1rem;
-            font-weight: 700;
-            border: 2px solid var(--cell-border);
-            background-color: var(--bg-dark);
-            color: var(--text-light);
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
-            text-transform: uppercase;
-        }
-        .btn:hover {
-            border-color: var(--primary);
-            box-shadow: 0 0 10px var(--primary-glow);
-            transform: translateY(-2px);
-        }
-        .btn.primary {
-            background-color: var(--primary);
-            border-color: var(--primary);
-        }
-
-        .team-selector {
-            width: 100%;
-            padding: 15px;
-            background-color: var(--bg-dark);
-            border: 2px solid var(--cell-border);
-            border-radius: 12px;
-            color: #fff;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 15px;
-        }
-
-        .leaderboard {
-            margin-top: 15px;
-            background-color: var(--bg-dark);
-            border-radius: 12px;
-            padding: 15px;
-            border: 2px solid var(--cell-border);
-        }
-
-        .leaderboard-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 10px;
-            border-bottom: 1px solid rgba(255,255,255,0.05);
-            font-weight: 700;
-        }
-        .leaderboard-item:last-child { border-bottom: none; }
-        .leaderboard-item .score { color: var(--present); }
-
-        .game-links {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
+            width: 100%;
             margin-top: 25px;
         }
-        .game-btn {
-            background: linear-gradient(135deg, var(--bg-dark), var(--cell-border));
-            border: 3px solid var(--cell-border);
-            padding: 25px;
-            border-radius: 16px;
-            color: #fff;
+        .hub-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+            padding: 22px;
+            font-size: 1.4rem;
             text-decoration: none;
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            transition: all 0.3s;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+        .hub-btn.lingo-btn {
+            background-color: rgba(228, 63, 90, 0.1);
+            border-color: var(--primary);
+            color: #fff;
+        }
+        .hub-btn.lingo-btn:hover { background-color: var(--primary); box-shadow: 0 0 20px var(--primary-glow); }
+        
+        .hub-btn.quiz-btn {
+            background-color: rgba(52, 152, 219, 0.1);
+            border-color: var(--team-a);
+            color: #fff;
+        }
+        .hub-btn.quiz-btn:hover { background-color: var(--team-a); box-shadow: 0 0 20px rgba(52, 152, 219, 0.4); }
+
+        .hub-btn.sport-btn {
+            background-color: rgba(46, 204, 113, 0.1);
+            border-color: var(--team-b);
+            color: #fff;
+        }
+        .hub-btn.sport-btn:hover { background-color: var(--team-b); box-shadow: 0 0 20px rgba(46, 204, 113, 0.4); }
+
+        .edit-hint {
+            font-size: 0.85rem;
+            color: var(--text-muted);
             text-align: center;
+            margin-top: -10px;
+            margin-bottom: 15px;
+            font-style: italic;
         }
-        .game-btn:hover {
-            border-color: var(--present);
-            box-shadow: 0 0 20px rgba(255, 177, 0, 0.4);
-            transform: translateY(-3px);
-        }
-        .game-btn span { color: var(--primary); }
     </style>
 </head>
 <body>
 
-    <div class="hub-container">
-        <h1>GAME<span>_</span>HUB</h1>
+    <div class="game-container" style="max-width: 600px;">
+        <div class="header">
+            <h1>PARTY<span>GAMES</span></h1>
+        </div>
 
-        <!-- Sectie 1: Team Toevoegen -->
-        <div class="section">
-            <label>Nieuw Team Aanmaken</label>
-            <div class="input-group">
-                <input type="text" id="new-team-name" placeholder="Vul teamnaam in...">
-                <button class="btn primary" onclick="createNewTeam()">Voeg toe</button>
+        <div class="edit-hint">💡 Dubbelklik op een teamnaam om deze te veranderen!</div>
+
+        <!-- Scorebord met dubbelklik-actie -->
+        <div class="team-selector-container">
+            <div id="team-a-box" class="team-box team-a" onclick="selectTeam('A')" ondblclick="editTeamName('A')">
+                <div id="name-a" class="team-name">TEAM A</div>
+                <div id="score-a" class="team-score">0</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div id="team-b-box" class="team-box team-b" onclick="selectTeam('B')" ondblclick="editTeamName('B')">
+                <div id="name-b" class="team-name">TEAM B</div>
+                <div id="score-b" class="team-score">0</div>
             </div>
         </div>
 
-        <!-- Sectie 2: Actief Team Selecteren -->
-        <div class="section">
-            <label>Selecteer Spelend Team</label>
-            <select id="active-team-select" class="team-selector" onchange="setActiveTeam()">
-                <!-- Dynamisch gevuld -->
-            </select>
-            <p style="font-size: 0.9rem; color: var(--text-muted);">Punten verdiend in de games worden aan dit team toegevoegd!</p>
-        </div>
-
-        <!-- Sectie 3: Scorebord tussenstand -->
-        <div class="section">
-            <label>Tussenstand 🏆</label>
-            <div class="leaderboard" id="leaderboard-container">
-                <!-- Dynamisch gevuld -->
-            </div>
-            <button class="btn" onclick="resetScores()" style="margin-top: 15px; font-size: 0.8rem; padding: 8px 15px;">Reset Alle Scores</button>
-        </div>
-
-        <!-- Sectie 4: Navigatie naar games -->
-        <div class="game-links">
-            <a href="games/lingo.html" class="game-btn">🔠 Lingo<span>_</span></a>
-            <a href="games/quiz.html" class="game-btn">❓ Quiz<span>_</span></a>
+        <div class="hub-menu">
+            <a href="lingo.html" class="btn hub-btn lingo-btn">🟥 Start Lingo</a>
+            <a href="quiz.html" class="btn hub-btn quiz-btn">🟦 Start Quiz</a>
+            <a href="sport.html?name=Voetbal&accent=bal" class="menu-card">⚽ Voetbal</a>
+            <a href="sport.html?name=Beerpong&accent=pong" class="menu-card">🏓 Beerpong</a>
+            <a href="sport.html?name=Darten&accent=180" class="menu-card">🎯 Darten</a>
         </div>
     </div>
 
-    <script>
-        let teams = JSON.parse(localStorage.getItem('quiz_lingo_teams')) || { "Team Alfa": 0, "Team Beta": 0 };
-        let activeTeam = localStorage.getItem('quiz_lingo_active_team') || "Team Alfa";
+    <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alles</button>
 
-        function updateUI() {
-            localStorage.setItem('quiz_lingo_teams', JSON.stringify(teams));
-            localStorage.setItem('quiz_lingo_active_team', activeTeam);
-
-            const select = document.getElementById('active-team-select');
-            select.innerHTML = '';
-            Object.keys(teams).forEach(team => {
-                const opt = document.createElement('option');
-                opt.value = team;
-                opt.innerText = team;
-                if(team === activeTeam) opt.selected = true;
-                select.appendChild(opt);
-            });
-
-            const leaderboard = document.getElementById('leaderboard-container');
-            leaderboard.innerHTML = '';
-            
-            const sortedTeams = Object.entries(teams).sort((a, b) => b[1] - a[1]);
-            
-            if(sortedTeams.length === 0) {
-                leaderboard.innerHTML = '<div class="leaderboard-item" style="color: var(--text-muted)">Nog geen teams aangemaakt.</div>';
-            } else {
-                sortedTeams.forEach(([name, score]) => {
-                    const item = document.createElement('div');
-                    item.className = 'leaderboard-item';
-                    if(name === activeTeam) item.style.borderLeft = '4px solid var(--present)';
-                    item.innerHTML = `<span>${name} ${name === activeTeam ? '🐾' : ''}</span><span class="score">${score} Pts</span>`;
-                    leaderboard.appendChild(item);
-                });
-            }
-        }
-
-        function createNewTeam() {
-            const input = document.getElementById('new-team-name');
-            const name = input.value.trim();
-            if(!name) return;
-            if(teams[name] !== undefined) {
-                alert("Dit team bestaat al!");
-                return;
-            }
-            teams[name] = 0;
-            activeTeam = name;
-            input.value = '';
-            updateUI();
-        }
-
-        function setActiveTeam() {
-            const select = document.getElementById('active-team-select');
-            activeTeam = select.value;
-            updateUI();
-        }
-
-        function resetScores() {
-            if(confirm("Weet je zeker dat je alle scores wilt resetten naar 0?")) {
-                Object.keys(teams).forEach(k => teams[k] = 0);
-                updateUI();
-            }
-        }
-
-        updateUI();
-    </script>
+    <script src="shared-teams.js"></script>
 </body>
 </html>
