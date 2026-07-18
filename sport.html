@@ -14,8 +14,12 @@
 
     <div class="game-container">
         <div class="header">
-            <!-- De titel wordt nu dynamisch ingevuld via JS -->
             <h1 id="main-title">SPORT<span>_</span></h1>
+        </div>
+
+        <!-- Container voor de dynamische uitleg/spelregels -->
+        <div id="rules-box" style="display: none; background: var(--bg-card); border-left: 4px solid var(--primary); padding: 15px; margin: -10px auto 25px auto; border-radius: 4px; max-width: 500px; text-align: left; box-shadow: var(--shadow);">
+            <p id="rules-text" style="margin: 0; color: var(--text-light); font-size: 0.95rem; line-height: 1.4; font-style: italic;"></p>
         </div>
 
         <div class="team-selector-container">
@@ -30,7 +34,6 @@
             </div>
         </div>
 
-        <!-- Score knoppen voor de sport -->
         <div class="sport-controls" style="display: flex; flex-direction: column; gap: 20px; margin-top: 30px; align-items: center;">
             <div style="display: flex; gap: 15px;">
                 <button class="btn active" onclick="adjustSportScore(1)" style="min-width: 120px;">+1 Punt</button>
@@ -52,18 +55,26 @@
     <script src="shared-teams.js"></script>
     <script src="sport.js"></script>
     
-    <!-- Script om de URL parameters te verwerken -->
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
             const sportNaam = urlParams.get('name') || 'Sport';
             const accentText = urlParams.get('accent') || '_';
+            const uitlegText = urlParams.get('desc'); 
 
-            // Pas de browser tab-titel aan
+            // Browsertitel en hoofdtitel aanpassen
             document.getElementById('page-title').innerText = `${sportNaam} Deluxe`;
-            
-            // Pas de H1 titel op de pagina aan (bijv. VOETBAL met een gekleurd accent)
             document.getElementById('main-title').innerHTML = `${sportNaam.toUpperCase()}<span>${accentText.toUpperCase()}</span>`;
+
+            // Als er een uitleg is meegegeven, toon dan de regels-box en vul de HTML
+            if (uitlegText) {
+                const rulesBox = document.getElementById('rules-box');
+                const rulesText = document.getElementById('rules-text');
+                
+                // Door innerHTML te gebruiken worden <br> tags nu wél correct uitgevoerd!
+                rulesText.innerHTML = "💡 Spelregels: " + uitlegText;
+                rulesBox.style.display = 'block';
+            }
         });
     </script>
 </body>
