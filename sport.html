@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="page-title">Sport Deluxe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-link" style="color: var(--text-light); border-color: var(--primary);">🏠 Terug naar Menu</a>
+    </div>
+
+    <div class="game-container">
+        <div class="header">
+            <!-- De titel wordt nu dynamisch ingevuld via JS -->
+            <h1 id="main-title">SPORT<span>_</span></h1>
+        </div>
+
+        <div class="team-selector-container">
+            <div id="team-a-box" class="team-box team-a active" onclick="selectTeam('A')">
+                <div id="name-a" class="team-name">TEAM A</div>
+                <div id="score-a" class="team-score">0</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div id="team-b-box" class="team-box team-b" onclick="selectTeam('B')">
+                <div id="name-b" class="team-name">TEAM B</div>
+                <div id="score-b" class="team-score">0</div>
+            </div>
+        </div>
+
+        <!-- Score knoppen voor de sport -->
+        <div class="sport-controls" style="display: flex; flex-direction: column; gap: 20px; margin-top: 30px; align-items: center;">
+            <div style="display: flex; gap: 15px;">
+                <button class="btn active" onclick="adjustSportScore(1)" style="min-width: 120px;">+1 Punt</button>
+                <button class="btn" onclick="adjustSportScore(-1)" style="min-width: 120px; background: var(--bg-card); border-color: #ff4757; color: #ff4757;">-1 Punt</button>
+            </div>
+            
+            <button class="sound-toggle" onclick="toggleSound()">
+                <span id="sound-icon">🔊</span> Geluid: <span id="sound-status">AAN</span>
+            </button>
+        </div>
+
+        <div class="message-container" style="margin-top: 20px;">
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alle scores</button>
+
+    <script src="shared-teams.js"></script>
+    <script src="sport.js"></script>
+    
+    <!-- Script om de URL parameters te verwerken -->
+    <script>
+        document.addEventListener("DOMContentLoaded", () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const sportNaam = urlParams.get('name') || 'Sport';
+            const accentText = urlParams.get('accent') || '_';
+
+            // Pas de browser tab-titel aan
+            document.getElementById('page-title').innerText = `${sportNaam} Deluxe`;
+            
+            // Pas de H1 titel op de pagina aan (bijv. VOETBAL met een gekleurd accent)
+            document.getElementById('main-title').innerHTML = `${sportNaam.toUpperCase()}<span>${accentText.toUpperCase()}</span>`;
+        });
+    </script>
+</body>
+</html>

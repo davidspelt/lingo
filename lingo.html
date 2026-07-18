@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lingo Deluxe</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="nav-bar">
+        <a href="index.html" class="nav-link" style="color: var(--text-light); border-color: var(--primary);">🏠 Terug naar Menu</a>
+    </div>
+
+    <div class="game-container">
+        <div class="header">
+            <h1>LIN<span>GO</span></h1>
+        </div>
+
+        <div class="team-selector-container">
+            <div id="team-a-box" class="team-box team-a active" onclick="selectTeam('A')">
+                <div id="name-a" class="team-name">TEAM A</div>
+                <div id="score-a" class="team-score">0</div>
+            </div>
+            <div class="vs-divider">VS</div>
+            <div id="team-b-box" class="team-box team-b" onclick="selectTeam('B')">
+                <div id="name-b" class="team-name">TEAM B</div>
+                <div id="score-b" class="team-score">0</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="btn-group">
+                <button class="btn active" onclick="changeWordLength(5)">5 Letters</button>
+                <button class="btn" onclick="changeWordLength(6)">6 Letters</button>
+                <button class="btn" onclick="changeWordLength(10)">10 Letters</button>
+            </div>
+            <button class="sound-toggle" onclick="toggleSound()">
+                <span id="sound-icon">🔊</span> Geluid: <span id="sound-status">AAN</span>
+            </button>
+        </div>
+
+        <div class="board-container" id="board-container">
+            <div id="board" class="board"></div>
+        </div>
+
+        <div class="message-container">
+            <div id="message" class="message"></div>
+        </div>
+    </div>
+
+    <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alle scores</button>
+
+    <div id="status-modal" class="modal-overlay">
+        <div class="modal">
+            <div id="modal-title" class="modal-title win">GEWONNEN! 🎉</div>
+            <div class="modal-body">
+                <p id="modal-desc">Geweldig gedaan!</p>
+                <div id="modal-word" class="word-reveal">WATER</div>
+            </div>
+            <button class="btn active" onclick="closeModalAndRestart()" style="max-width: 200px; margin: 0 auto;">Volgende Woord</button>
+        </div>
+    </div>
+
+    <!-- HIER WORDT NU EERST JOUW WOORDENLIST GELADEN -->
+    <script src="woorden.js"></script>
+    <script src="shared-teams.js"></script>
+    <script src="lingo.js"></script>
+</body>
+</html>
