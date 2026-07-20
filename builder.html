@@ -1,16 +1,18 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JSON Data Manager</title>
+    <title>JSON Data Beheerder</title>
     <style>
         :root {
             --bg-color: #f4f6f8;
             --card-bg: #ffffff;
             --primary-color: #2563eb;
             --primary-hover: #1d4ed8;
+            --danger-color: #dc2626;
             --success-color: #16a34a;
+            --secondary-color: #64748b;
             --text-color: #1e293b;
             --border-color: #e2e8f0;
         }
@@ -82,6 +84,11 @@
             margin-bottom: 1rem;
         }
 
+        .header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
         /* Buttons */
         .btn {
             background-color: var(--primary-color);
@@ -98,10 +105,25 @@
             background-color: var(--primary-hover);
         }
 
+        .btn-secondary {
+            background-color: var(--secondary-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: #475569;
+        }
+
         .btn-sm {
-            padding: 0.25rem 0.6rem;
+            padding: 0.3rem 0.6rem;
             font-size: 0.8rem;
             margin-top: 0.5rem;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            padding: 0.2rem 0.5rem;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
         }
 
         /* Tree View Styles */
@@ -115,15 +137,17 @@
 
         .tree-view summary {
             font-weight: 600;
-            cursor: pointer;
             color: var(--primary-color);
             font-size: 1.1rem;
             outline: none;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
         }
 
         .tree-view ul {
             list-style-type: none;
-            padding-left: 1rem;
+            padding-left: 0;
             margin: 0.75rem 0 0 0;
         }
 
@@ -132,12 +156,34 @@
             border: 1px solid var(--border-color);
             border-radius: 6px;
             padding: 0.75rem;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.75rem;
+        }
+
+        /* Inline Editable Field Styling */
+        [contenteditable="true"] {
+            border: 1px dashed transparent;
+            padding: 2px 4px;
+            border-radius: 4px;
+            transition: all 0.2s ease;
+        }
+
+        [contenteditable="true"]:hover {
+            border-color: #cbd5e1;
+            background-color: #f8fafc;
+        }
+
+        [contenteditable="true"]:focus {
+            border-color: var(--primary-color);
+            background-color: #fff;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.2);
         }
 
         .question-title {
             font-weight: 600;
-            margin-bottom: 0.4rem;
+            margin-bottom: 0.5rem;
+            display: inline-block;
+            width: calc(100% - 80px);
         }
 
         .options-list {
@@ -147,9 +193,19 @@
             color: #475569;
         }
 
-        .correct-answer {
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .correct-badge {
             color: var(--success-color);
+            font-size: 0.8rem;
             font-weight: 600;
+            cursor: pointer;
+            user-select: none;
         }
 
         /* JSON View Styles */
@@ -180,15 +236,18 @@
 <div class="container">
     <!-- Tabs Header -->
     <div class="tabs">
-        <button class="tab-btn active" onclick="switchTab('tree-tab', this)">Category & Question Tree</button>
-        <button class="tab-btn" onclick="switchTab('json-tab', this)">Raw JSON Data</button>
+        <button class="tab-btn active" onclick="switchTab('tree-tab', this)">Categorie & Vragen Tree</button>
+        <button class="tab-btn" onclick="switchTab('json-tab', this)">Ruwe JSON Data</button>
     </div>
 
     <!-- Tree View Tab -->
     <div id="tree-tab" class="tab-content active">
         <div class="tree-header">
-            <h3 style="margin: 0;">Interactive Tree</h3>
-            <button class="btn" onclick="addCategory()">+ Add Category</button>
+            <h3 style="margin: 0;">Interactieve Editor</h3>
+            <div class="header-actions">
+                <button class="btn btn-secondary" onclick="resetToDefault()">Reset Naar Standaard</button>
+                <button class="btn" onclick="addCategory()">+ Categorie Toevoegen</button>
+            </div>
         </div>
         <div id="tree-container" class="tree-view"></div>
     </div>
@@ -196,90 +255,195 @@
     <!-- JSON View Tab -->
     <div id="json-tab" class="tab-content">
         <div class="json-container">
-            <button class="btn copy-btn" onclick="copyJsonData()">Copy JSON</button>
+            <button class="btn copy-btn" onclick="copyJsonData()">Kopieer JSON</button>
             <pre><code id="json-code"></code></pre>
         </div>
     </div>
 </div>
 
 <script>
-    // Sample Dataset with Questions, Options, and Correct Answers
-    let dataset = [
+    const STORAGE_KEY = "quiz_data_cache";
+
+    // Default Dutch Example Dataset
+    const defaultDataset = [
         {
-            category: "General Knowledge",
+            category: "Algemene Kennis",
             questions: [
                 {
-                    question: "What is the capital of France?",
-                    options: ["London", "Paris", "Berlin", "Madrid"],
-                    answer: "Paris"
+                    question: "Wat is de hoofdstad van Nederland?",
+                    options: ["Rotterdam", "Amsterdam", "Utrecht", "Den Haag"],
+                    answer: "Amsterdam"
                 },
                 {
-                    question: "Which planet is known as the Red Planet?",
-                    options: ["Earth", "Mars", "Jupiter", "Venus"],
-                    answer: "Mars"
+                    question: "Hoeveel provincies heeft Nederland?",
+                    options: ["10", "11", "12", "14"],
+                    answer: "12"
                 }
             ]
         },
         {
-            category: "Technology",
+            category: "Technologie",
             questions: [
                 {
-                    question: "What does HTML stand for?",
+                    question: "Waar staat de afkorting HTML voor?",
                     options: [
-                        "Hyper Text Markup Language",
-                        "High Tech Multi Language",
-                        "Hyper Transfer Mark Language"
+                        "HyperText Markup Language",
+                        "HighText Machine Language",
+                        "Hyper Transfer Main Language"
                     ],
-                    answer: "Hyper Text Markup Language"
+                    answer: "HyperText Markup Language"
                 }
             ]
         }
     ];
 
-    // Render Category & Question Tree View
+    // Load dataset from LocalStorage Cache or fallback to default
+    let dataset = loadDataset();
+
+    function loadDataset() {
+        const cachedData = localStorage.getItem(STORAGE_KEY);
+        if (cachedData) {
+            try {
+                return JSON.parse(cachedData);
+            } catch (e) {
+                console.error("Fout bij het laden van cache:", e);
+            }
+        }
+        return defaultDataset;
+    }
+
+    // Save dataset to LocalStorage Cache
+    function saveData() {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(dataset));
+        renderJson();
+    }
+
+    // Reset Cache to Original Default
+    function resetToDefault() {
+        if (confirm("Weet je zeker dat je alle wijzigingen wilt wissen en wilt herstellen naar het standaard voorbeeld?")) {
+            dataset = JSON.parse(JSON.stringify(defaultDataset));
+            saveData();
+            renderTree();
+        }
+    }
+
+    // Render Tree with Inline Editors
     function renderTree() {
         const container = document.getElementById('tree-container');
         container.innerHTML = '';
 
         dataset.forEach((catItem, catIndex) => {
             const details = document.createElement('details');
-            details.open = true; // Kept open by default
+            details.open = true;
             
             const summary = document.createElement('summary');
-            summary.textContent = `${catItem.category} (${catItem.questions.length})`;
+            
+            // Editable Category Name
+            const catNameSpan = document.createElement('span');
+            catNameSpan.contentEditable = true;
+            catNameSpan.textContent = catItem.category;
+            catNameSpan.onblur = (e) => {
+                dataset[catIndex].category = e.target.textContent.trim();
+                saveData();
+            };
+
+            const countSpan = document.createElement('span');
+            countSpan.style.color = '#64748b';
+            countSpan.style.fontSize = '0.9rem';
+            countSpan.textContent = `(${catItem.questions.length})`;
+
+            // Delete Category Button
+            const delCatBtn = document.createElement('button');
+            delCatBtn.className = 'btn btn-danger';
+            delCatBtn.textContent = 'Verwijder';
+            delCatBtn.onclick = (e) => {
+                e.stopPropagation();
+                dataset.splice(catIndex, 1);
+                saveData();
+                renderTree();
+            };
+
+            summary.appendChild(catNameSpan);
+            summary.appendChild(countSpan);
+            summary.appendChild(delCatBtn);
             
             const list = document.createElement('ul');
 
-            catItem.questions.forEach(qItem => {
+            catItem.questions.forEach((qItem, qIndex) => {
                 const li = document.createElement('li');
                 li.className = 'question-card';
 
+                // Editable Question Title
                 const qTitle = document.createElement('div');
                 qTitle.className = 'question-title';
+                qTitle.contentEditable = true;
                 qTitle.textContent = qItem.question;
+                qTitle.onblur = (e) => {
+                    dataset[catIndex].questions[qIndex].question = e.target.textContent.trim();
+                    saveData();
+                };
 
-                const optionsList = document.createElement('ul');
+                // Delete Question Button
+                const delQBtn = document.createElement('button');
+                delQBtn.className = 'btn btn-danger';
+                delQBtn.style.float = 'right';
+                delQBtn.textContent = 'Wis Vraag';
+                delQBtn.onclick = () => {
+                    dataset[catIndex].questions.splice(qIndex, 1);
+                    saveData();
+                    renderTree();
+                };
+
+                const optionsList = document.createElement('div');
                 optionsList.className = 'options-list';
 
-                qItem.options.forEach(opt => {
-                    const optLi = document.createElement('li');
-                    if (opt === qItem.answer) {
-                        optLi.innerHTML = `${opt} <span class="correct-answer">✓ (Correct)</span>`;
-                    } else {
-                        optLi.textContent = opt;
-                    }
-                    optionsList.appendChild(optLi);
+                qItem.options.forEach((opt, optIndex) => {
+                    const optRow = document.createElement('div');
+                    optRow.className = 'option-item';
+
+                    // Editable Option Text
+                    const optSpan = document.createElement('span');
+                    optSpan.contentEditable = true;
+                    optSpan.textContent = opt;
+                    optSpan.onblur = (e) => {
+                        const oldVal = dataset[catIndex].questions[qIndex].options[optIndex];
+                        const newVal = e.target.textContent.trim();
+                        dataset[catIndex].questions[qIndex].options[optIndex] = newVal;
+                        
+                        // Update answer if the edited option was the correct one
+                        if (dataset[catIndex].questions[qIndex].answer === oldVal) {
+                            dataset[catIndex].questions[qIndex].answer = newVal;
+                        }
+                        saveData();
+                    };
+
+                    // Toggle Correct Answer Badge
+                    const badge = document.createElement('span');
+                    const isCorrect = (opt === qItem.answer);
+                    badge.className = 'correct-badge';
+                    badge.innerHTML = isCorrect ? '✓ (Correct antwoord)' : '◯ (Klik als correct)';
+                    badge.style.color = isCorrect ? 'var(--success-color)' : '#94a3b8';
+                    badge.onclick = () => {
+                        dataset[catIndex].questions[qIndex].answer = dataset[catIndex].questions[qIndex].options[optIndex];
+                        saveData();
+                        renderTree();
+                    };
+
+                    optRow.appendChild(optSpan);
+                    optRow.appendChild(badge);
+                    optionsList.appendChild(optRow);
                 });
 
+                li.appendChild(delQBtn);
                 li.appendChild(qTitle);
                 li.appendChild(optionsList);
                 list.appendChild(li);
             });
 
-            // Add Question Button for this specific Category
+            // Add Question Button
             const addQBtn = document.createElement('button');
             addQBtn.className = 'btn btn-sm';
-            addQBtn.textContent = '+ Add Question';
+            addQBtn.textContent = '+ Nieuwe Vraag';
             addQBtn.onclick = () => addQuestion(catIndex);
 
             details.appendChild(summary);
@@ -288,7 +452,6 @@
             container.appendChild(details);
         });
 
-        // Always sync JSON view when tree updates
         renderJson();
     }
 
@@ -300,36 +463,23 @@
 
     // Add a New Category
     function addCategory() {
-        const categoryName = prompt("Enter new category name:");
-        if (categoryName && categoryName.trim() !== "") {
-            dataset.push({
-                category: categoryName.trim(),
-                questions: []
-            });
-            renderTree();
-        }
+        dataset.push({
+            category: "Nieuwe Categorie",
+            questions: []
+        });
+        saveData();
+        renderTree();
     }
 
-    // Add a New Question to a Category
+    // Add a New Blank Question
     function addQuestion(categoryIndex) {
-        const questionText = prompt("Enter the question:");
-        if (!questionText) return;
-
-        const optionsString = prompt("Enter options separated by commas (e.g. Option A, Option B, Option C):");
-        if (!optionsString) return;
-
-        const options = optionsString.split(',').map(opt => opt.trim()).filter(opt => opt !== "");
-        
-        const answerText = prompt(`Enter the exact correct answer from your options:\n[ ${options.join(' | ')} ]`);
-
-        if (questionText && options.length > 0) {
-            dataset[categoryIndex].questions.push({
-                question: questionText,
-                options: options,
-                answer: answerText ? answerText.trim() : options[0]
-            });
-            renderTree();
-        }
+        dataset[categoryIndex].questions.push({
+            question: "Typ hier je nieuwe vraag...",
+            options: ["Optie 1", "Optie 2", "Optie 3"],
+            answer: "Optie 1"
+        });
+        saveData();
+        renderTree();
     }
 
     // Tab Switcher Handler
@@ -346,8 +496,8 @@
         const jsonText = JSON.stringify(dataset, null, 2);
         navigator.clipboard.writeText(jsonText).then(() => {
             const btn = document.querySelector('.copy-btn');
-            btn.textContent = 'Copied!';
-            setTimeout(() => btn.textContent = 'Copy JSON', 2000);
+            btn.textContent = 'Gekopieerd!';
+            setTimeout(() => btn.textContent = 'Kopieer JSON', 2000);
         });
     }
 
