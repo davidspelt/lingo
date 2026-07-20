@@ -1,40 +1,214 @@
 const defaultQuizData = {
-[
-  {
-    "category": "Geografie",
-    "questions": [
+   "geografie":[
       {
-        "question": "Wat is de hoofdstad van Ghana?",
-        "options": ["Accra", "Kumasi", "Yamoussoukro", "Abuja"],
-        "answer": "Accra"
+         "question":"Welke rivier stroomt er dwars door de stad Parijs?",
+         "answers":[
+            "De Loire",
+            "De Seine",
+            "De Rhône",
+            "De Rijn"
+         ],
+         "correct":1
       },
       {
-        "question": "Hoeveel gemeenten heeft Nederland?",
-        "options": ["326", "336", "342", "350"],
-        "answer": "342"
+         "question":"Wat is het grootste land ter wereld qua oppervlakte?",
+         "answers":[
+            "Canada",
+            "Verenigde Staten",
+            "China",
+            "Rusland"
+         ],
+         "correct":3
       },
       {
-        "question": "Wat is de verste stad vanaf Hardewijk",
-        "options": ["Sydney", "Wellington", "Christchurch", "Auckland"],
-        "answer": "Wellington"
-      }
-    ]
-  },
-  {
-    "category": "Technologie",
-    "questions": [
+         "question":"Hoeveel gemeenten heeft Nederland?",
+         "answers":[
+            "326",
+            "336",
+            "342",
+            "351"
+         ],
+         "correct":2
+      },
       {
-        "question": "Waar staat de afkorting HTML voor?",
-        "options": [
-          "HyperText Markup Language",
-          "HighText Machine Language",
-          "Hyper Transfer Main Language"
-        ],
-        "answer": "HyperText Markup Language"
+         "question":"Wat is de verste stad vanaf Harderwijk?",
+         "answers":[
+            "Sydney",
+            "Wellington",
+            "Christchurch",
+            "Auckland"
+         ],
+         "correct":1
       }
-    ]
-  }
-]
+   ],
+   "films":[
+      {
+         "question":"Hoeveel Oscars won de film 'Avatar' (2009) in totaal?",
+         "answers":[
+            "3",
+            "5",
+            "7",
+            "11"
+         ],
+         "correct":0
+      },
+      {
+         "question":"Hoe lang duurt de film 'Titanic'?",
+         "answers":[
+            "151 min",
+            "164 min",
+            "182 min",
+            "194 min"
+         ],
+         "correct":3
+      },
+      {
+         "question":"Wie componeerde de muziek bij de originele Star Wars?",
+         "answers":[
+            "Jerry Goldsmith",
+            "John Williams",
+            "James Horner",
+            "Elmer Bernstein"
+         ],
+         "correct":1
+      },
+      {
+         "question":"Wie kreeg in 2001 de Oscar voor Beste Acteur?",
+         "answers":[
+            "Russell Crowe",
+            "Tom Hanks",
+            "Kevin Spacey",
+            "Javier Bardem"
+         ],
+         "correct":0
+      }
+   ],
+   "geschiedenis":[
+      {
+         "question":"Wie was de eerste president van de Verenigde Staten?",
+         "answers":[
+            "Thomas Jefferson",
+            "Abraham Lincoln",
+            "George Washington",
+            "John Adams"
+         ],
+         "correct":2
+      },
+      {
+         "question":"Welke beschaving bouwde Machu Picchu?",
+         "answers":[
+            "De Maya's",
+            "De Azteken",
+            "De Inca's",
+            "De Romeinen"
+         ],
+         "correct":2
+      },
+      {
+         "question":"In welk jaar werd Nederland opgericht",
+         "answers":[
+            "1581",
+            "1588",
+            "1815",
+            "1918"
+         ],
+         "correct":2
+      },
+      {
+         "question":"Wanneer had Nederland voor het eerst 10 miljoen inwoners?",
+         "answers":[
+            "1950",
+            "1955",
+            "1960",
+            "1965"
+         ],
+         "correct":0
+      }
+   ],
+   "sport":[
+      {
+         "question":"Welke tennisspeler won de meeste Grand Slam-titels bij de mannen?",
+         "answers":[
+            "Roger Federer",
+            "Rafael Nadal",
+            "Novak Djokovic",
+            "Pete Sampras"
+         ],
+         "correct":2
+      },
+      {
+         "question":"Wie won de meeste Gouden ballen?",
+         "answers":[
+            "Cristiano Ronaldo",
+            "Kylian Mbappé",
+            "Johan Cruijff",
+            "Lionel Messi"
+         ],
+         "correct":0
+      },
+      {
+         "question":"Uit hoeveel minuten bestaat een reguliere hockeywedstrijd in Nederland?",
+         "answers":[
+            "60",
+            "70",
+            "80",
+            "90"
+         ],
+         "correct":1
+      },
+      {
+         "question":"Welke legendarische darter gooide in 2002 als allereerste ooit een perfecte 9-darter live op de televisie tijdens de World Matchplay?",
+         "answers":[
+            "Raymond van Barneveld",
+            "John Lowe",
+            "Dennis Priestley",
+            "Phil Tayler"
+         ],
+         "correct":3
+      }
+   ],
+   "wetenschap":[
+      {
+         "question":"Wat is het chemische symbool van goud?",
+         "answers":[
+            "Ag",
+            "Go",
+            "Au",
+            "Gd"
+         ],
+         "correct":2
+      },
+      {
+         "question":"Wat is het 10e getal achter de komma van Pi?",
+         "answers":[
+            "2",
+            "5",
+            "7",
+            "9"
+         ],
+         "correct":0
+      },
+      {
+         "question":"Bij hoeveel graden wordt kwik vloeibaar?",
+         "answers":[
+            "0",
+            "20",
+            "100",
+            "271"
+         ],
+         "correct":0
+      },
+      {
+         "question":"Wat is het grootste tijdverschil tussen 2 plekken op aarde?",
+         "answers":[
+            "23 uur",
+            "24 uur",
+            "25 uur",
+            "26 uur"
+         ],
+         "correct":3
+      }
+   ]
 };
 
 let quizData = JSON.parse(JSON.stringify(defaultQuizData));
