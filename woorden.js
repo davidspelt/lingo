@@ -6,7 +6,8 @@ const customWordsList = {
         "krant", 
         "pappa", 
         "snerk", 
-        "feest"
+        "feest",
+        "woord"
     ],
     6: [
         "amstel", 
