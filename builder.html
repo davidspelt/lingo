@@ -209,21 +209,21 @@
             width: calc(100% - 80px);
         }
 
-        .options-list {
+        .answers-list {
             padding-left: 0.5rem !important;
             margin: 0.25rem 0 !important;
             font-size: 0.9rem;
             color: #475569;
         }
 
-        .option-item {
+        .answer-item {
             display: flex;
             align-items: center;
             gap: 0.5rem;
             margin-bottom: 0.3rem;
         }
 
-        .option-index {
+        .answer-index {
             font-weight: bold;
             color: #64748b;
             min-width: 20px;
@@ -291,40 +291,31 @@
 </div>
 
 <script>
-    const STORAGE_KEY = "quiz_data_cache_v2";
+    const STORAGE_KEY = "quiz_data_cache_v3";
 
-    // Default Dutch Example Dataset (Answer uses 0-based index)
-    const defaultDataset = [
-        {
-            category: "Algemene Kennis",
-            questions: [
-                {
-                    question: "Wat is de hoofdstad van Nederland?",
-                    options: ["Rotterdam", "Amsterdam", "Utrecht", "Den Haag"],
-                    answer: 1 // 1 staat voor "Amsterdam" (index 1)
-                },
-                {
-                    question: "Hoeveel provincies heeft Nederland?",
-                    options: ["10", "11", "12", "14"],
-                    answer: 2 // 2 staat voor "12" (index 2)
-                }
-            ]
-        },
-        {
-            category: "Technologie",
-            questions: [
-                {
-                    question: "Waar staat de afkorting HTML voor?",
-                    options: [
-                        "HyperText Markup Language",
-                        "HighText Machine Language",
-                        "Hyper Transfer Main Language"
-                    ],
-                    answer: 0 // 0 staat voor "HyperText Markup Language" (index 0)
-                }
-            ]
-        }
-    ];
+    // Exact requested JSON format example data
+    const defaultDataset = {
+        "merken": [
+            {"question": "Welk sportmerk heeft een logo dat bekend staat als de 'Swoosh'?", "answers": ["Adidas", "Puma", "Nike", "Reebok"], "correct": 2},
+            {"question": "Uit welk land komt het bekende meubelmerk IKEA?", "answers": ["Denemarken", "Zweden", "Noorwegen", "Finland"], "correct": 1},
+            {"question": "Welke tech-gigant produceerde oorspronkelijk speelkaarten?", "answers": ["Nintendo", "Sony", "Apple", "Sega"], "correct": 0}
+        ],
+        "geografie": [
+            {"question": "Wat is de hoofdstad van Australië?", "answers": ["Sydney", "Melbourne", "Canberra", "Brisbane"], "correct": 2},
+            {"question": "Welke rivier stroomt er dwars door de stad Parijs?", "answers": ["De Loire", "De Seine", "De Rhône", "De Rijn"], "correct": 1},
+            {"question": "Wat is het grootste land ter wereld qua oppervlakte?", "answers": ["Canada", "Verenigde Staten", "China", "Rusland"], "correct": 3}
+        ],
+        "spellen": [
+            {"question": "In welk populair spel vechten 100 spelers op een eiland tot er één overleeft?", "answers": ["Minecraft", "Fortnite", "Apex Legends", "PUBG"], "correct": 1},
+            {"question": "Hoeveel vakjes heeft een standaard schaakbord?", "answers": ["36", "48", "64", "81"], "correct": 2},
+            {"question": "Welk personage is de iconische mascotte van SEGA?", "answers": ["Mario", "Crash Bandicoot", "Sonic the Hedgehog", "Pac-Man"], "correct": 2}
+        ],
+        "films": [
+            {"question": "Wie speelde de hoofdrol van Jack Dawson in de klassieker Titanic?", "answers": ["Brad Pitt", "Leonardo DiCaprio", "Matt Damon", "Johnny Depp"], "correct": 1},
+            {"question": "Welke filmreeks bevat personages genaamd 'Hobbits'?", "answers": ["Star Wars", "Harry Potter", "The Lord of the Rings", "The Chronicles of Narnia"], "correct": 2},
+            {"question": "Hoeveel Oscars won de film 'Avatar' (2009) in totaal?", "answers": ["3", "5", "7", "11"], "correct": 0}
+        ]
+    };
 
     // Load dataset from LocalStorage Cache or fallback to default
     let dataset = loadDataset();
@@ -361,25 +352,32 @@
         const container = document.getElementById('tree-container');
         container.innerHTML = '';
 
-        dataset.forEach((catItem, catIndex) => {
+        Object.keys(dataset).forEach((categoryKey) => {
+            const questions = dataset[categoryKey];
+
             const details = document.createElement('details');
             details.open = true;
             
             const summary = document.createElement('summary');
             
-            // Editable Category Name
+            // Editable Category Name (Key in object)
             const catNameSpan = document.createElement('span');
             catNameSpan.contentEditable = true;
-            catNameSpan.textContent = catItem.category;
+            catNameSpan.textContent = categoryKey;
             catNameSpan.onblur = (e) => {
-                dataset[catIndex].category = e.target.textContent.trim();
-                saveData();
+                const newKey = e.target.textContent.trim();
+                if (newKey && newKey !== categoryKey) {
+                    dataset[newKey] = dataset[categoryKey];
+                    delete dataset[categoryKey];
+                    saveData();
+                    renderTree();
+                }
             };
 
             const countSpan = document.createElement('span');
             countSpan.style.color = '#64748b';
             countSpan.style.fontSize = '0.9rem';
-            countSpan.textContent = `(${catItem.questions.length})`;
+            countSpan.textContent = `(${questions.length})`;
 
             // Delete Category Button
             const delCatBtn = document.createElement('button');
@@ -387,7 +385,7 @@
             delCatBtn.textContent = 'Verwijder';
             delCatBtn.onclick = (e) => {
                 e.stopPropagation();
-                dataset.splice(catIndex, 1);
+                delete dataset[categoryKey];
                 saveData();
                 renderTree();
             };
@@ -398,7 +396,7 @@
             
             const list = document.createElement('ul');
 
-            catItem.questions.forEach((qItem, qIndex) => {
+            questions.forEach((qItem, qIndex) => {
                 const li = document.createElement('li');
                 li.className = 'question-card';
 
@@ -408,7 +406,7 @@
                 qTitle.contentEditable = true;
                 qTitle.textContent = qItem.question;
                 qTitle.onblur = (e) => {
-                    dataset[catIndex].questions[qIndex].question = e.target.textContent.trim();
+                    dataset[categoryKey][qIndex].question = e.target.textContent.trim();
                     saveData();
                 };
 
@@ -418,77 +416,76 @@
                 delQBtn.style.float = 'right';
                 delQBtn.textContent = 'Wis Vraag';
                 delQBtn.onclick = () => {
-                    dataset[catIndex].questions.splice(qIndex, 1);
+                    dataset[categoryKey].splice(qIndex, 1);
                     saveData();
                     renderTree();
                 };
 
-                const optionsList = document.createElement('div');
-                optionsList.className = 'options-list';
+                const answersList = document.createElement('div');
+                answersList.className = 'answers-list';
 
-                qItem.options.forEach((opt, optIndex) => {
-                    const optRow = document.createElement('div');
-                    optRow.className = 'option-item';
+                qItem.answers.forEach((ans, ansIndex) => {
+                    const ansRow = document.createElement('div');
+                    ansRow.className = 'answer-item';
 
-                    // Option Index Label (0, 1, 2, 3...)
+                    // Answer Index Label (0, 1, 2, 3...)
                     const indexSpan = document.createElement('span');
-                    indexSpan.className = 'option-index';
-                    indexSpan.textContent = `${optIndex}:`;
+                    indexSpan.className = 'answer-index';
+                    indexSpan.textContent = `${ansIndex}:`;
 
-                    // Editable Option Text
-                    const optSpan = document.createElement('span');
-                    optSpan.contentEditable = true;
-                    optSpan.textContent = opt;
-                    optSpan.style.flex = "1";
-                    optSpan.onblur = (e) => {
-                        dataset[catIndex].questions[qIndex].options[optIndex] = e.target.textContent.trim();
+                    // Editable Answer Text
+                    const ansSpan = document.createElement('span');
+                    ansSpan.contentEditable = true;
+                    ansSpan.textContent = ans;
+                    ansSpan.style.flex = "1";
+                    ansSpan.onblur = (e) => {
+                        dataset[categoryKey][qIndex].answers[ansIndex] = e.target.textContent.trim();
                         saveData();
                     };
 
                     // Toggle Correct Answer Badge (Stores Index)
                     const badge = document.createElement('span');
-                    const isCorrect = (qItem.answer === optIndex);
+                    const isCorrect = (qItem.correct === ansIndex);
                     badge.className = 'correct-badge';
-                    badge.innerHTML = isCorrect ? '✓ (Correct antwoord)' : '◯ (Klik als correct)';
+                    badge.innerHTML = isCorrect ? '✓ (Correct)' : '◯ (Klik als correct)';
                     badge.style.color = isCorrect ? 'var(--success-color)' : '#94a3b8';
                     badge.onclick = () => {
-                        dataset[catIndex].questions[qIndex].answer = optIndex;
+                        dataset[categoryKey][qIndex].correct = ansIndex;
                         saveData();
                         renderTree();
                     };
 
-                    // Delete Single Option Button
-                    const delOptBtn = document.createElement('button');
-                    delOptBtn.className = 'btn-icon';
-                    delOptBtn.textContent = '×';
-                    delOptBtn.title = 'Wis optie';
-                    delOptBtn.onclick = () => {
-                        dataset[catIndex].questions[qIndex].options.splice(optIndex, 1);
-                        // Adjust answer index if needed
-                        if (dataset[catIndex].questions[qIndex].answer >= dataset[catIndex].questions[qIndex].options.length) {
-                            dataset[catIndex].questions[qIndex].answer = 0;
+                    // Delete Single Answer Option Button
+                    const delAnsBtn = document.createElement('button');
+                    delAnsBtn.className = 'btn-icon';
+                    delAnsBtn.textContent = '×';
+                    delAnsBtn.title = 'Wis antwoord';
+                    delAnsBtn.onclick = () => {
+                        dataset[categoryKey][qIndex].answers.splice(ansIndex, 1);
+                        if (dataset[categoryKey][qIndex].correct >= dataset[categoryKey][qIndex].answers.length) {
+                            dataset[categoryKey][qIndex].correct = 0;
                         }
                         saveData();
                         renderTree();
                     };
 
-                    optRow.appendChild(indexSpan);
-                    optRow.appendChild(optSpan);
-                    optRow.appendChild(badge);
-                    optRow.appendChild(delOptBtn);
-                    optionsList.appendChild(optRow);
+                    ansRow.appendChild(indexSpan);
+                    ansRow.appendChild(ansSpan);
+                    ansRow.appendChild(badge);
+                    ansRow.appendChild(delAnsBtn);
+                    answersList.appendChild(ansRow);
                 });
 
-                // Add Option Button
-                const addOptBtn = document.createElement('button');
-                addOptBtn.className = 'btn btn-sm btn-outline';
-                addOptBtn.textContent = '+ Voeg antwoord toe';
-                addOptBtn.onclick = () => addOption(catIndex, qIndex);
+                // Add Answer Button
+                const addAnsBtn = document.createElement('button');
+                addAnsBtn.className = 'btn btn-sm btn-outline';
+                addAnsBtn.textContent = '+ Voeg antwoord toe';
+                addAnsBtn.onclick = () => addAnswer(categoryKey, qIndex);
 
                 li.appendChild(delQBtn);
                 li.appendChild(qTitle);
-                li.appendChild(optionsList);
-                li.appendChild(addOptBtn);
+                li.appendChild(answersList);
+                li.appendChild(addAnsBtn);
                 list.appendChild(li);
             });
 
@@ -496,7 +493,7 @@
             const addQBtn = document.createElement('button');
             addQBtn.className = 'btn btn-sm';
             addQBtn.textContent = '+ Nieuwe Vraag';
-            addQBtn.onclick = () => addQuestion(catIndex);
+            addQBtn.onclick = () => addQuestion(categoryKey);
 
             details.appendChild(summary);
             details.appendChild(list);
@@ -510,34 +507,32 @@
     // Render Raw JSON Data
     function renderJson() {
         const jsonCode = document.getElementById('json-code');
-        jsonCode.textContent = JSON.stringify(dataset, null, 2);
+        jsonCode.textContent = JSON.stringify(dataset, null, 4);
     }
 
     // Add a New Category
     function addCategory() {
-        dataset.push({
-            category: "Nieuwe Categorie",
-            questions: []
-        });
+        const newCatKey = "nieuwe_categorie_" + Object.keys(dataset).length;
+        dataset[newCatKey] = [];
         saveData();
         renderTree();
     }
 
     // Add a New Blank Question
-    function addQuestion(categoryIndex) {
-        dataset[categoryIndex].questions.push({
+    function addQuestion(categoryKey) {
+        dataset[categoryKey].push({
             question: "Typ hier je nieuwe vraag...",
-            options: ["Optie 0", "Optie 1"],
-            answer: 0 // Default index 0
+            answers: ["Optie 0", "Optie 1"],
+            correct: 0
         });
         saveData();
         renderTree();
     }
 
-    // Add a New Option to a Question
-    function addOption(categoryIndex, questionIndex) {
-        const newOptionIndex = dataset[categoryIndex].questions[questionIndex].options.length;
-        dataset[categoryIndex].questions[questionIndex].options.push(`Optie ${newOptionIndex}`);
+    // Add a New Answer Option to a Question
+    function addAnswer(categoryKey, questionIndex) {
+        const newIndex = dataset[categoryKey][questionIndex].answers.length;
+        dataset[categoryKey][questionIndex].answers.push(`Optie ${newIndex}`);
         saveData();
         renderTree();
     }
@@ -553,7 +548,7 @@
 
     // Copy JSON to Clipboard
     function copyJsonData() {
-        const jsonText = JSON.stringify(dataset, null, 2);
+        const jsonText = JSON.stringify(dataset, null, 4);
         navigator.clipboard.writeText(jsonText).then(() => {
             const btn = document.querySelector('.copy-btn');
             btn.textContent = 'Gekopieerd!';
