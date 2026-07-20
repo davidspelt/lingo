@@ -18,6 +18,6 @@ const customWordsList = {
         "michel"
     ],
     10: [
-        "bierenbeul" // Dit woord heeft 11 letters, de Lingo-functionaliteit past zich hier automatisch op aan!
+        "bierenbeul"
     ]
 };
