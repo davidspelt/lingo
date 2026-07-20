@@ -119,11 +119,34 @@
             margin-top: 0.5rem;
         }
 
+        .btn-outline {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 1px dashed var(--primary-color);
+        }
+
+        .btn-outline:hover {
+            background-color: #eff6ff;
+        }
+
         .btn-danger {
             background-color: var(--danger-color);
             padding: 0.2rem 0.5rem;
             font-size: 0.75rem;
             margin-left: 0.5rem;
+        }
+
+        .btn-icon {
+            background: none;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 0 4px;
+        }
+
+        .btn-icon:hover {
+            color: var(--danger-color);
         }
 
         /* Tree View Styles */
@@ -187,7 +210,7 @@
         }
 
         .options-list {
-            padding-left: 1.25rem !important;
+            padding-left: 0.5rem !important;
             margin: 0.25rem 0 !important;
             font-size: 0.9rem;
             color: #475569;
@@ -197,7 +220,13 @@
             display: flex;
             align-items: center;
             gap: 0.5rem;
-            margin-bottom: 0.25rem;
+            margin-bottom: 0.3rem;
+        }
+
+        .option-index {
+            font-weight: bold;
+            color: #64748b;
+            min-width: 20px;
         }
 
         .correct-badge {
@@ -262,9 +291,9 @@
 </div>
 
 <script>
-    const STORAGE_KEY = "quiz_data_cache";
+    const STORAGE_KEY = "quiz_data_cache_v2";
 
-    // Default Dutch Example Dataset
+    // Default Dutch Example Dataset (Answer uses 0-based index)
     const defaultDataset = [
         {
             category: "Algemene Kennis",
@@ -272,12 +301,12 @@
                 {
                     question: "Wat is de hoofdstad van Nederland?",
                     options: ["Rotterdam", "Amsterdam", "Utrecht", "Den Haag"],
-                    answer: "Amsterdam"
+                    answer: 1 // 1 staat voor "Amsterdam" (index 1)
                 },
                 {
                     question: "Hoeveel provincies heeft Nederland?",
                     options: ["10", "11", "12", "14"],
-                    answer: "12"
+                    answer: 2 // 2 staat voor "12" (index 2)
                 }
             ]
         },
@@ -291,7 +320,7 @@
                         "HighText Machine Language",
                         "Hyper Transfer Main Language"
                     ],
-                    answer: "HyperText Markup Language"
+                    answer: 0 // 0 staat voor "HyperText Markup Language" (index 0)
                 }
             ]
         }
@@ -401,42 +430,65 @@
                     const optRow = document.createElement('div');
                     optRow.className = 'option-item';
 
+                    // Option Index Label (0, 1, 2, 3...)
+                    const indexSpan = document.createElement('span');
+                    indexSpan.className = 'option-index';
+                    indexSpan.textContent = `${optIndex}:`;
+
                     // Editable Option Text
                     const optSpan = document.createElement('span');
                     optSpan.contentEditable = true;
                     optSpan.textContent = opt;
+                    optSpan.style.flex = "1";
                     optSpan.onblur = (e) => {
-                        const oldVal = dataset[catIndex].questions[qIndex].options[optIndex];
-                        const newVal = e.target.textContent.trim();
-                        dataset[catIndex].questions[qIndex].options[optIndex] = newVal;
-                        
-                        // Update answer if the edited option was the correct one
-                        if (dataset[catIndex].questions[qIndex].answer === oldVal) {
-                            dataset[catIndex].questions[qIndex].answer = newVal;
-                        }
+                        dataset[catIndex].questions[qIndex].options[optIndex] = e.target.textContent.trim();
                         saveData();
                     };
 
-                    // Toggle Correct Answer Badge
+                    // Toggle Correct Answer Badge (Stores Index)
                     const badge = document.createElement('span');
-                    const isCorrect = (opt === qItem.answer);
+                    const isCorrect = (qItem.answer === optIndex);
                     badge.className = 'correct-badge';
                     badge.innerHTML = isCorrect ? '✓ (Correct antwoord)' : '◯ (Klik als correct)';
                     badge.style.color = isCorrect ? 'var(--success-color)' : '#94a3b8';
                     badge.onclick = () => {
-                        dataset[catIndex].questions[qIndex].answer = dataset[catIndex].questions[qIndex].options[optIndex];
+                        dataset[catIndex].questions[qIndex].answer = optIndex;
                         saveData();
                         renderTree();
                     };
 
+                    // Delete Single Option Button
+                    const delOptBtn = document.createElement('button');
+                    delOptBtn.className = 'btn-icon';
+                    delOptBtn.textContent = '×';
+                    delOptBtn.title = 'Wis optie';
+                    delOptBtn.onclick = () => {
+                        dataset[catIndex].questions[qIndex].options.splice(optIndex, 1);
+                        // Adjust answer index if needed
+                        if (dataset[catIndex].questions[qIndex].answer >= dataset[catIndex].questions[qIndex].options.length) {
+                            dataset[catIndex].questions[qIndex].answer = 0;
+                        }
+                        saveData();
+                        renderTree();
+                    };
+
+                    optRow.appendChild(indexSpan);
                     optRow.appendChild(optSpan);
                     optRow.appendChild(badge);
+                    optRow.appendChild(delOptBtn);
                     optionsList.appendChild(optRow);
                 });
+
+                // Add Option Button
+                const addOptBtn = document.createElement('button');
+                addOptBtn.className = 'btn btn-sm btn-outline';
+                addOptBtn.textContent = '+ Voeg antwoord toe';
+                addOptBtn.onclick = () => addOption(catIndex, qIndex);
 
                 li.appendChild(delQBtn);
                 li.appendChild(qTitle);
                 li.appendChild(optionsList);
+                li.appendChild(addOptBtn);
                 list.appendChild(li);
             });
 
@@ -475,9 +527,17 @@
     function addQuestion(categoryIndex) {
         dataset[categoryIndex].questions.push({
             question: "Typ hier je nieuwe vraag...",
-            options: ["Optie 1", "Optie 2", "Optie 3"],
-            answer: "Optie 1"
+            options: ["Optie 0", "Optie 1"],
+            answer: 0 // Default index 0
         });
+        saveData();
+        renderTree();
+    }
+
+    // Add a New Option to a Question
+    function addOption(categoryIndex, questionIndex) {
+        const newOptionIndex = dataset[categoryIndex].questions[questionIndex].options.length;
+        dataset[categoryIndex].questions[questionIndex].options.push(`Optie ${newOptionIndex}`);
         saveData();
         renderTree();
     }
