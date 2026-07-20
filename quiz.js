@@ -1,24 +1,40 @@
 const defaultQuizData = {
-    "merken": [
-        {"question": "Welk sportmerk heeft een logo dat bekend staat als de 'Swoosh'?", "answers": ["Adidas", "Puma", "Nike", "Reebok"], "correct": 2},
-        {"question": "Uit welk land komt het bekende meubelmerk IKEA?", "answers": ["Denemarken", "Zweden", "Noorwegen", "Finland"], "correct": 1},
-        {"question": "Welke tech-gigant produceerde oorspronkelijk speelkaarten?", "answers": ["Nintendo", "Sony", "Apple", "Sega"], "correct": 0}
-    ],
-    "geografie": [
-        {"question": "Wat is de hoofdstad van Australië?", "answers": ["Sydney", "Melbourne", "Canberra", "Brisbane"], "correct": 2},
-        {"question": "Welke rivier stroomt er dwars door de stad Parijs?", "answers": ["De Loire", "De Seine", "De Rhône", "De Rijn"], "correct": 1},
-        {"question": "Wat is het grootste land ter wereld qua oppervlakte?", "answers": ["Canada", "Verenigde Staten", "China", "Rusland"], "correct": 3}
-    ],
-    "spellen": [
-        {"question": "In welk populair spel vechten 100 spelers op een eiland tot er één overleeft?", "answers": ["Minecraft", "Fortnite", "Apex Legends", "PUBG"], "correct": 1},
-        {"question": "Hoeveel vakjes heeft een standaard schaakbord?", "answers": ["36", "48", "64", "81"], "correct": 2},
-        {"question": "Welk personage is de iconische mascotte van SEGA?", "answers": ["Mario", "Crash Bandicoot", "Sonic the Hedgehog", "Pac-Man"], "correct": 2}
-    ],
-    "films": [
-        {"question": "Wie speelde de hoofdrol van Jack Dawson in de klassieker Titanic?", "answers": ["Brad Pitt", "Leonardo DiCaprio", "Matt Damon", "Johnny Depp"], "correct": 1},
-        {"question": "Welke filmreeks bevat personages genaamd 'Hobbits'?", "answers": ["Star Wars", "Harry Potter", "The Lord of the Rings", "The Chronicles of Narnia"], "correct": 2},
-        {"question": "Hoeveel Oscars won de film 'Avatar' (2009) in totaal?", "answers": ["3", "5", "7", "11"], "correct": 0}
+[
+  {
+    "category": "Geografie",
+    "questions": [
+      {
+        "question": "Wat is de hoofdstad van Ghana?",
+        "options": ["Accra", "Kumasi", "Yamoussoukro", "Abuja"],
+        "answer": "Accra"
+      },
+      {
+        "question": "Hoeveel gemeenten heeft Nederland?",
+        "options": ["326", "336", "342", "350"],
+        "answer": "342"
+      },
+      {
+        "question": "Wat is de verste stad vanaf Hardewijk",
+        "options": ["Sydney", "Wellington", "Christchurch", "Auckland"],
+        "answer": "Wellington"
+      }
     ]
+  },
+  {
+    "category": "Technologie",
+    "questions": [
+      {
+        "question": "Waar staat de afkorting HTML voor?",
+        "options": [
+          "HyperText Markup Language",
+          "HighText Machine Language",
+          "Hyper Transfer Main Language"
+        ],
+        "answer": "HyperText Markup Language"
+      }
+    ]
+  }
+]
 };
 
 let quizData = JSON.parse(JSON.stringify(defaultQuizData));
