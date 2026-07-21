@@ -1,6 +1,4 @@
-const defaultQuizData = Categorie & Vragen Tree
-Ruwe JSON Data
-Kopieer JSON
+const defaultQuizData = 
 {
     "geografie": [
         {
