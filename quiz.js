@@ -1,5 +1,4 @@
-const defaultQuizData = 
-{
+const defaultQuizData = {
     "geografie": [
         {
             "question": "Welke rivier stroomt er dwars door de stad Parijs?",
@@ -260,6 +259,9 @@ let currentQuestionIndex = 0;
 let soundEnabled = true;
 window.isEvaluating = false;
 
+// Keeps track of running timers so editing/reloading can interrupt evaluation immediately
+let activeEvaluationTimers = [];
+
 let audioCtx = null;
 function initAudio() {
     if (!audioCtx) { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
@@ -295,8 +297,10 @@ function playSound(type) {
 
 function toggleSound() {
     soundEnabled = !soundEnabled;
-    document.getElementById('sound-status').innerText = soundEnabled ? "AAN" : "UIT";
-    document.getElementById('sound-icon').innerText = soundEnabled ? "🔊" : "🔇";
+    const statusElem = document.getElementById('sound-status');
+    const iconElem = document.getElementById('sound-icon');
+    if (statusElem) statusElem.innerText = soundEnabled ? "AAN" : "UIT";
+    if (iconElem) iconElem.innerText = soundEnabled ? "🔊" : "🔇";
     if (soundEnabled) { initAudio(); playSound('click'); }
     if (document.activeElement) document.activeElement.blur();
 }
@@ -316,6 +320,7 @@ async function fetchQuizJSON() {
 
 function buildCategoryButtons() {
     const container = document.getElementById('category-group');
+    if (!container) return;
     container.innerHTML = '';
     Object.keys(quizData).forEach(cat => {
         const btn = document.createElement('button');
@@ -325,8 +330,41 @@ function buildCategoryButtons() {
     });
 }
 
+function clearPendingTimers() {
+    activeEvaluationTimers.forEach(timer => clearTimeout(timer));
+    activeEvaluationTimers = [];
+}
+
+/**
+ * Resets the display and state without wiping loaded quiz datasets.
+ */
+function resetQuizState() {
+    clearPendingTimers();
+    window.isEvaluating = false;
+    activeCategory = "";
+    currentQuestionIndex = 0;
+
+    const modal = document.getElementById('status-modal');
+    if (modal) modal.classList.remove('active');
+
+    document.querySelectorAll('#category-group .btn').forEach(btn => btn.classList.remove('active'));
+
+    const questionElem = document.getElementById('question-text');
+    if (questionElem) questionElem.innerText = "Kies hierboven een categorie om een nieuwe quiz te starten!";
+
+    const answersGrid = document.getElementById('answers-grid');
+    if (answersGrid) answersGrid.innerHTML = '';
+
+    const qNumElem = document.getElementById('current-question-num');
+    if (qNumElem) qNumElem.innerText = "0/0";
+
+    const msgElem = document.getElementById('message');
+    if (msgElem) msgElem.innerText = "";
+}
+
 function startCategory(cat) {
-    if (window.isEvaluating) return;
+    if (window.isEvaluating) resetQuizState();
+    
     activeCategory = cat;
     currentQuestionIndex = 0;
 
@@ -339,14 +377,29 @@ function startCategory(cat) {
 }
 
 function loadQuestion() {
+    if (!activeCategory || !quizData[activeCategory]) return;
+    
     const questions = quizData[activeCategory];
-    document.getElementById('current-question-num').innerText = `${currentQuestionIndex + 1}/${questions.length}`;
-    document.getElementById('message').innerText = "";
+    
+    // Safety fallback if question index was made out of bounds during live edits
+    if (currentQuestionIndex >= questions.length) {
+        currentQuestionIndex = 0;
+    }
+
+    const qNumElem = document.getElementById('current-question-num');
+    if (qNumElem) qNumElem.innerText = `${currentQuestionIndex + 1}/${questions.length}`;
+    
+    const msgElem = document.getElementById('message');
+    if (msgElem) msgElem.innerText = "";
 
     const q = questions[currentQuestionIndex];
-    document.getElementById('question-text').innerText = q.question;
+    if (!q) return;
+
+    const questionElem = document.getElementById('question-text');
+    if (questionElem) questionElem.innerText = q.question;
 
     const answersGrid = document.getElementById('answers-grid');
+    if (!answersGrid) return;
     answersGrid.innerHTML = '';
 
     const prefixes = ["A", "B", "C", "D"];
@@ -367,10 +420,12 @@ function selectAnswer(selectedIndex) {
     const q = questions[currentQuestionIndex];
     const buttons = document.querySelectorAll('.answers-grid .answer-btn');
 
-    buttons[selectedIndex].classList.add('selected');
+    if (buttons[selectedIndex]) {
+        buttons[selectedIndex].classList.add('selected');
+    }
     playSound('click');
 
-    setTimeout(() => {
+    const timer1 = setTimeout(() => {
         buttons.forEach((btn, idx) => {
             btn.classList.remove('selected');
             btn.disabled = true; 
@@ -378,18 +433,21 @@ function selectAnswer(selectedIndex) {
         });
 
         if (selectedIndex === q.correct) {
-            // Verhoog globale score via shared-teams.js
-            scores[currentTeam] += 1; 
-            saveSharedState(); 
+            if (typeof scores !== 'undefined' && typeof currentTeam !== 'undefined') {
+                scores[currentTeam] = (scores[currentTeam] || 0) + 1; 
+                if (typeof saveSharedState === 'function') saveSharedState(); 
+            }
             
             playSound('correct');
-            document.getElementById('message').innerText = `Team ${currentTeam} scoort +1 punt! ✨`;
+            const msgElem = document.getElementById('message');
+            if (msgElem) msgElem.innerText = `Team ${typeof currentTeam !== 'undefined' ? currentTeam : ''} scoort +1 punt! ✨`;
         } else {
             playSound('wrong');
-            document.getElementById('message').innerText = "Helaas, onjuist! 🧩";
+            const msgElem = document.getElementById('message');
+            if (msgElem) msgElem.innerText = "Helaas, onjuist! 🧩";
         }
 
-        setTimeout(() => {
+        const timer2 = setTimeout(() => {
             currentQuestionIndex++;
             if (currentQuestionIndex < questions.length) {
                 loadQuestion();
@@ -398,23 +456,35 @@ function selectAnswer(selectedIndex) {
                 showEndModal();
             }
         }, 1500);
+        
+        activeEvaluationTimers.push(timer2);
 
     }, 800);
+
+    activeEvaluationTimers.push(timer1);
 }
 
 function showEndModal() {
-    document.getElementById('status-modal').classList.add('active');
+    const modal = document.getElementById('status-modal');
+    if (modal) modal.classList.add('active');
     playSound('win');
 }
 
 function closeModal() {
-    document.getElementById('status-modal').classList.remove('active');
-    document.querySelectorAll('#category-group .btn').forEach(btn => btn.classList.remove('active'));
-    document.getElementById('question-text').innerText = "Kies hierboven een categorie om een nieuwe quiz te starten!";
-    document.getElementById('answers-grid').innerHTML = '';
-    document.getElementById('current-question-num').innerText = "0/0";
-    document.getElementById('message').innerText = "";
-    window.isEvaluating = false;
+    resetQuizState();
 }
 
+/**
+ * Public method to apply edits or reload data dynamically from external scripts/editors.
+ * @param {Object} newData - Updated quiz object
+ */
+function reloadQuestions(newData) {
+    if (newData && typeof newData === 'object') {
+        quizData = newData;
+    }
+    resetQuizState();
+    buildCategoryButtons();
+}
+
+// Initial initialization
 fetchQuizJSON();
