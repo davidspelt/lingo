@@ -14,13 +14,32 @@
       --danger: #ef4444;
       --border: #334155;
     }
-    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      padding: 20px; 
+      margin: 0; 
+    }
     .container { max-width: 800px; margin: 0 auto; }
-    .card { background: var(--card-bg); padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border); position: relative; }
-    label { display: block; margin-top: 8px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
+    .card { 
+      background: var(--card-bg); 
+      padding: 16px; 
+      border-radius: 8px; 
+      margin-bottom: 16px; 
+      border: 1px solid var(--border); 
+      position: relative; 
+    }
+    label { display: block; margin-top: 10px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
     input[type="text"], input[type="password"], select {
-      width: 100%; padding: 8px 10px; margin-top: 4px; background: #020617; border: 1px solid var(--border);
-      color: var(--text); border-radius: 4px; box-sizing: border-box;
+      width: 100%; 
+      padding: 8px 10px; 
+      margin-top: 4px; 
+      background: #020617; 
+      border: 1px solid var(--border);
+      color: var(--text); 
+      border-radius: 4px; 
+      box-sizing: border-box;
     }
     .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     .btn-primary { background: var(--primary); color: white; }
@@ -31,35 +50,37 @@
     #status { margin-top: 15px; padding: 12px; border-radius: 6px; display: none; font-weight: bold; }
     .cat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
     .q-block { background: #090d16; border: 1px solid #1e293b; padding: 12px; border-radius: 6px; margin-bottom: 12px; position: relative; }
+    .loading-text { font-size: 14px; color: #94a3b8; text-align: center; padding: 20px; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="card">
-    <div style="display:flex; justify-content:space-between; align-items:center;">
-      <h2>Quiz Editor</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+      <h2 style="margin:0;">Quiz Editor</h2>
       <a href="../index.html" class="btn btn-primary" style="text-decoration:none;">⬅ Terug naar Quiz</a>
     </div>
-    <label>GitHub Personal Access Token (PAT):</label>
+    <label for="gh-token">GitHub Personal Access Token (PAT):</label>
     <input type="password" id="gh-token" placeholder="ghp_..." onchange="saveTokenLocally(this.value)">
-    <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Wordt veilig opgeslagen in jouw browser cache.</p>
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Nodig om opslaan op GitHub te authoriseren. Wordt lokaal in je browser opgeslagen.</p>
   </div>
 
   <div id="status"></div>
-  <div id="editor-app"></div>
+  <div id="editor-app">
+    <div class="card loading-text">Huidige vragen laden van GitHub...</div>
+  </div>
 
-  <div style="display:flex; justify-content:space-between; margin-top: 15px;">
+  <div style="display:flex; justify-content:space-between; margin-top: 15px; margin-bottom: 30px;">
     <button class="btn btn-primary" onclick="addCategory()">+ Categorie Toevoegen</button>
     <button class="btn btn-success" onclick="saveToGitHub()">💾 Opslaan & Pushen naar GitHub</button>
   </div>
 </div>
 
 <script>
-  // Repository setup
   const REPO_OWNER = 'davidspelt';
   const REPO_NAME = 'lingo';
-  const FILE_PATH = 'vragen.json';
+  const FILE_PATH = 'vragen.json'; // Of 'quiz.json' afhankelijk van je repo
 
   let quizData = {};
   let currentFileSha = null;
@@ -74,25 +95,34 @@
 
   async function loadData() {
     const savedToken = localStorage.getItem('lingo_gh_token') || '';
-    if (savedToken) document.getElementById('gh-token').value = savedToken;
+    if (savedToken) {
+      document.getElementById('gh-token').value = savedToken;
+    }
 
     try {
-      const headers = {};
-      if (savedToken) headers['Authorization'] = `token ${savedToken}`;
-
-      const res = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, { headers });
-      if (res.ok) {
-        const meta = await res.json();
+      // 1. Probeer metadata + SHA te halen via de GitHub API
+      const headers = savedToken ? { 'Authorization': `token ${savedToken}` } : {};
+      const apiRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, { headers });
+      
+      if (apiRes.ok) {
+        const meta = await apiRes.json();
         currentFileSha = meta.sha;
         const decoded = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
         quizData = JSON.parse(decoded);
       } else {
-        quizData = {};
+        // 2. Fallback: Lees het bestand rechtstreeks uit de publieke GitHub web-URL
+        const rawRes = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${FILE_PATH}?cachebust=${Date.now()}`);
+        if (rawRes.ok) {
+          quizData = await rawRes.json();
+        } else {
+          quizData = { "Algemeen": [] };
+        }
       }
     } catch (e) {
       console.error('Laden mislukt:', e);
-      quizData = {};
+      showStatus('Kon de huidige vragen niet automatisch laden.', '#991b1b');
     }
+
     render();
   }
 
@@ -100,35 +130,45 @@
     const container = document.getElementById('editor-app');
     container.innerHTML = '';
 
+    if (!quizData || Object.keys(quizData).length === 0) {
+      container.innerHTML = `<div class="card"><p style="color:#64748b;">Geen categorieën of vragen gevonden.</p></div>`;
+      return;
+    }
+
     Object.keys(quizData).forEach(cat => {
       const catCard = document.createElement('div');
       catCard.className = 'card';
 
+      const questions = Array.isArray(quizData[cat]) ? quizData[cat] : [];
       let questionsHTML = '';
-      quizData[cat].forEach((q, qIdx) => {
+
+      questions.forEach((q, qIdx) => {
+        const answers = Array.isArray(q.answers) ? q.answers : (q.options || []);
+        
         questionsHTML += `
           <div class="q-block">
             <div style="display:flex; justify-content:space-between; align-items:center;">
               <strong>Vraag ${qIdx + 1}</strong>
               <button class="btn btn-danger btn-sm" onclick="removeQuestion('${cat}', ${qIdx})">Verwijderen</button>
             </div>
-            <label>Vraagtekst:</label>
-            <input type="text" value="${escapeHtml(q.question)}" oninput="quizData['${cat}'][${qIdx}].question = this.value">
             
-            <label>Antwoorden:</label>
+            <label>Vraagtekst:</label>
+            <input type="text" value="${escapeHtml(q.question)}" oninput="updateQuestionText('${cat}', ${qIdx}, this.value)">
+            
+            <label>Antwoorden / Opties:</label>
             <div class="answers-grid">
-              ${q.answers.map((ans, aIdx) => `
+              ${answers.map((ans, aIdx) => `
                 <div>
                   <small style="color:#94a3b8">Optie ${String.fromCharCode(65 + aIdx)}:</small>
-                  <input type="text" value="${escapeHtml(ans)}" oninput="quizData['${cat}'][${qIdx}].answers[${aIdx}] = this.value">
+                  <input type="text" value="${escapeHtml(ans)}" oninput="updateAnswer('${cat}', ${qIdx}, ${aIdx}, this.value)">
                 </div>
               `).join('')}
             </div>
 
-            <label>Correct Antwoord:</label>
-            <select onchange="quizData['${cat}'][${qIdx}].correct = parseInt(this.value)">
-              ${q.answers.map((_, aIdx) => `
-                <option value="${aIdx}" ${q.correct === aIdx ? 'selected' : ''}>Optie ${String.fromCharCode(65 + aIdx)}</option>
+            <label>Correct Antwoord Index:</label>
+            <select onchange="updateCorrectIndex('${cat}', ${qIdx}, this.value)">
+              ${answers.map((_, aIdx) => `
+                <option value="${aIdx}" ${q.correct === aIdx || q.answer === aIdx ? 'selected' : ''}>Optie ${String.fromCharCode(65 + aIdx)}</option>
               `).join('')}
             </select>
           </div>
@@ -150,7 +190,23 @@
     });
   }
 
+  function updateQuestionText(cat, qIdx, value) {
+    quizData[cat][qIdx].question = value;
+  }
+
+  function updateAnswer(cat, qIdx, aIdx, value) {
+    if (!quizData[cat][qIdx].answers) quizData[cat][qIdx].answers = quizData[cat][qIdx].options || [];
+    quizData[cat][qIdx].answers[aIdx] = value;
+  }
+
+  function updateCorrectIndex(cat, qIdx, value) {
+    const val = parseInt(value, 10);
+    quizData[cat][qIdx].correct = val;
+    quizData[cat][qIdx].answer = val;
+  }
+
   function addQuestion(cat) {
+    if (!quizData[cat]) quizData[cat] = [];
     quizData[cat].push({
       question: "Nieuwe vraag",
       answers: ["Optie A", "Optie B", "Optie C", "Optie D"],
@@ -183,30 +239,46 @@
     return (str || '').replace(/"/g, '&quot;');
   }
 
-  async function saveToGitHub() {
-    const token = getToken();
+  function showStatus(msg, bgColor) {
     const status = document.getElementById('status');
     status.style.display = 'block';
+    status.style.background = bgColor;
+    status.innerText = msg;
+  }
+
+  async function saveToGitHub() {
+    const token = getToken();
 
     if (!token) {
-      status.style.background = '#991b1b';
-      status.innerText = 'Voer eerst jouw GitHub Personal Access Token in.';
+      showStatus('Voer eerst jouw GitHub Personal Access Token in om op te slaan.', '#991b1b');
       return;
     }
 
-    status.style.background = '#1e3a8a';
-    status.innerText = 'Updates pushen naar vragen.json op GitHub...';
+    showStatus('Bezig met opslaan en pushen naar GitHub...', '#1e3a8a');
 
     try {
+      // 1. Haal de actuele SHA op als we die nog niet hadden
+      if (!currentFileSha) {
+        const checkRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        if (checkRes.ok) {
+          const meta = await checkRes.json();
+          currentFileSha = meta.sha;
+        }
+      }
+
+      // 2. Gegevens converteren naar Base64
       const jsonString = JSON.stringify(quizData, null, 2);
       const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
       const bodyData = {
-        message: 'Update vragen.json via Editor',
+        message: 'Update quizvragen via Editor',
         content: base64Content
       };
       if (currentFileSha) bodyData.sha = currentFileSha;
 
+      // 3. Stuur de PUT request naar GitHub
       const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${FILE_PATH}`, {
         method: 'PUT',
         headers: {
@@ -220,15 +292,13 @@
       if (response.ok) {
         const resData = await response.json();
         currentFileSha = resData.content.sha;
-        status.style.background = '#065f46';
-        status.innerText = 'Succes! vragen.json is geüpdatet op GitHub. GitHub Pages is binnen 1 minuut live bijgewerkt.';
+        showStatus('Succes! Vragen opgeslagen. GitHub Pages update de quiz binnen 1 minuut.', '#065f46');
       } else {
         const err = await response.json();
-        throw new Error(err.message || 'API Error');
+        throw new Error(err.message || 'API error');
       }
     } catch (e) {
-      status.style.background = '#991b1b';
-      status.innerText = 'Opslaan mislukt: ' + e.message;
+      showStatus('Opslaan mislukt: ' + e.message, '#991b1b');
     }
   }
 
