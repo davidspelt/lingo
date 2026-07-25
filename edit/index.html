@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="nl">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lingo Editor</title>
+  <title>Quiz Editor</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -15,46 +15,53 @@
       --border: #334155;
     }
     body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--text); padding: 20px; margin: 0; }
-    .container { max-width: 700px; margin: 0 auto; }
-    .card { background: var(--card-bg); padding: 16px; border-radius: 8px; margin-bottom: 12px; border: 1px solid var(--border); position: relative; }
-    label { display: block; margin-top: 8px; font-weight: 600; font-size: 14px; }
-    input[type="text"], input[type="password"] {
-      width: 100%; padding: 10px; margin-top: 6px; background: #020617; border: 1px solid var(--border);
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { background: var(--card-bg); padding: 16px; border-radius: 8px; margin-bottom: 16px; border: 1px solid var(--border); position: relative; }
+    label { display: block; margin-top: 8px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
+    input[type="text"], input[type="password"], select {
+      width: 100%; padding: 8px 10px; margin-top: 4px; background: #020617; border: 1px solid var(--border);
       color: var(--text); border-radius: 4px; box-sizing: border-box;
     }
-    .btn { padding: 10px 16px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; margin-top: 10px; }
+    .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
     .btn-primary { background: var(--primary); color: white; }
     .btn-success { background: var(--success); color: white; }
     .btn-danger { background: var(--danger); color: white; }
-    .btn-sm { padding: 4px 8px; font-size: 12px; margin-top: 0; }
-    #status { margin-top: 15px; padding: 12px; border-radius: 6px; display: none; }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+    .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    #status { margin-top: 15px; padding: 12px; border-radius: 6px; display: none; font-weight: bold; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
+    .q-block { background: #090d16; border: 1px solid #1e293b; padding: 12px; border-radius: 6px; margin-bottom: 12px; position: relative; }
   </style>
 </head>
 <body>
 
 <div class="container">
   <div class="card">
-    <h2>Lingo Quiz Editor</h2>
+    <div style="display:flex; justify-content:space-between; align-items:center;">
+      <h2>Quiz Editor</h2>
+      <a href="../index.html" class="btn btn-primary" style="text-decoration:none;">⬅ Terug naar Quiz</a>
+    </div>
     <label>GitHub Personal Access Token (PAT):</label>
-    <input type="password" id="gh-token" placeholder="github_pat_..." onchange="saveTokenLocally(this.value)">
-    <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Saved in browser local storage. Never committed to GitHub or shared.</p>
+    <input type="password" id="gh-token" placeholder="ghp_..." onchange="saveTokenLocally(this.value)">
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Wordt veilig opgeslagen in jouw browser cache.</p>
   </div>
 
   <div id="status"></div>
-  <div id="questions-list"></div>
+  <div id="editor-app"></div>
 
   <div style="display:flex; justify-content:space-between; margin-top: 15px;">
-    <button class="btn btn-primary" onclick="addQuestion()">+ Add Question</button>
-    <button class="btn btn-success" onclick="saveToGitHub()">Save & Push to GitHub</button>
+    <button class="btn btn-primary" onclick="addCategory()">+ Categorie Toevoegen</button>
+    <button class="btn btn-success" onclick="saveToGitHub()">💾 Opslaan & Pushen naar GitHub</button>
   </div>
 </div>
 
 <script>
+  // Repository setup
   const REPO_OWNER = 'davidspelt';
   const REPO_NAME = 'lingo';
-  const FILE_PATH = 'quiz.json';
+  const FILE_PATH = 'vragen.json';
 
-  let quizData = { questions: [] };
+  let quizData = {};
   let currentFileSha = null;
 
   function saveTokenLocally(val) {
@@ -80,38 +87,96 @@
         const decoded = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
         quizData = JSON.parse(decoded);
       } else {
-        quizData = { questions: [] };
+        quizData = {};
       }
     } catch (e) {
-      console.error('Failed to fetch file:', e);
-      quizData = { questions: [] };
+      console.error('Laden mislukt:', e);
+      quizData = {};
     }
     render();
   }
 
   function render() {
-    const list = document.getElementById('questions-list');
-    list.innerHTML = '';
-    quizData.questions.forEach((q, qIdx) => {
-      const card = document.createElement('div');
-      card.className = 'card';
-      card.innerHTML = `
-        <button class="btn btn-danger btn-sm" style="position: absolute; right: 16px; top: 16px;" onclick="removeQuestion(${qIdx})">Delete</button>
-        <label>Question ${qIdx + 1}</label>
-        <input type="text" value="${escapeHtml(q.question)}" oninput="quizData.questions[${qIdx}].question = this.value">
+    const container = document.getElementById('editor-app');
+    container.innerHTML = '';
+
+    Object.keys(quizData).forEach(cat => {
+      const catCard = document.createElement('div');
+      catCard.className = 'card';
+
+      let questionsHTML = '';
+      quizData[cat].forEach((q, qIdx) => {
+        questionsHTML += `
+          <div class="q-block">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Vraag ${qIdx + 1}</strong>
+              <button class="btn btn-danger btn-sm" onclick="removeQuestion('${cat}', ${qIdx})">Verwijderen</button>
+            </div>
+            <label>Vraagtekst:</label>
+            <input type="text" value="${escapeHtml(q.question)}" oninput="quizData['${cat}'][${qIdx}].question = this.value">
+            
+            <label>Antwoorden:</label>
+            <div class="answers-grid">
+              ${q.answers.map((ans, aIdx) => `
+                <div>
+                  <small style="color:#94a3b8">Optie ${String.fromCharCode(65 + aIdx)}:</small>
+                  <input type="text" value="${escapeHtml(ans)}" oninput="quizData['${cat}'][${qIdx}].answers[${aIdx}] = this.value">
+                </div>
+              `).join('')}
+            </div>
+
+            <label>Correct Antwoord:</label>
+            <select onchange="quizData['${cat}'][${qIdx}].correct = parseInt(this.value)">
+              ${q.answers.map((_, aIdx) => `
+                <option value="${aIdx}" ${q.correct === aIdx ? 'selected' : ''}>Optie ${String.fromCharCode(65 + aIdx)}</option>
+              `).join('')}
+            </select>
+          </div>
+        `;
+      });
+
+      catCard.innerHTML = `
+        <div class="cat-header">
+          <h3 style="margin:0;">📁 ${cat}</h3>
+          <div>
+            <button class="btn btn-primary btn-sm" onclick="addQuestion('${cat}')">+ Vraag</button>
+            <button class="btn btn-danger btn-sm" onclick="removeCategory('${cat}')">Verwijder Categorie</button>
+          </div>
+        </div>
+        ${questionsHTML || '<p style="color:#64748b; font-size:14px;">Geen vragen in deze categorie.</p>'}
       `;
-      list.appendChild(card);
+
+      container.appendChild(catCard);
     });
   }
 
-  function addQuestion() {
-    quizData.questions.push({ question: "New Question", options: [], answer: 0 });
+  function addQuestion(cat) {
+    quizData[cat].push({
+      question: "Nieuwe vraag",
+      answers: ["Optie A", "Optie B", "Optie C", "Optie D"],
+      correct: 0
+    });
     render();
   }
 
-  function removeQuestion(idx) {
-    quizData.questions.splice(idx, 1);
+  function removeQuestion(cat, idx) {
+    quizData[cat].splice(idx, 1);
     render();
+  }
+
+  function addCategory() {
+    const cat = prompt("Naam van de nieuwe categorie:");
+    if (cat && !quizData[cat]) {
+      quizData[cat] = [];
+      render();
+    }
+  }
+
+  function removeCategory(cat) {
+    if (confirm(`Categorie '${cat}' verwijderen?`)) {
+      delete quizData[cat];
+      render();
+    }
   }
 
   function escapeHtml(str) {
@@ -125,19 +190,19 @@
 
     if (!token) {
       status.style.background = '#991b1b';
-      status.innerText = 'Please enter a valid GitHub token.';
+      status.innerText = 'Voer eerst jouw GitHub Personal Access Token in.';
       return;
     }
 
     status.style.background = '#1e3a8a';
-    status.innerText = 'Pushing update directly to GitHub...';
+    status.innerText = 'Updates pushen naar vragen.json op GitHub...';
 
     try {
       const jsonString = JSON.stringify(quizData, null, 2);
       const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
 
       const bodyData = {
-        message: 'Update quiz.json from Lingo Editor',
+        message: 'Update vragen.json via Editor',
         content: base64Content
       };
       if (currentFileSha) bodyData.sha = currentFileSha;
@@ -156,14 +221,14 @@
         const resData = await response.json();
         currentFileSha = resData.content.sha;
         status.style.background = '#065f46';
-        status.innerText = 'Success! GitHub Pages will auto-republish in ~1 minute.';
+        status.innerText = 'Succes! vragen.json is geüpdatet op GitHub. GitHub Pages is binnen 1 minuut live bijgewerkt.';
       } else {
         const err = await response.json();
-        throw new Error(err.message || 'API error');
+        throw new Error(err.message || 'API Error');
       }
     } catch (e) {
       status.style.background = '#991b1b';
-      status.innerText = 'Failed: ' + e.message;
+      status.innerText = 'Opslaan mislukt: ' + e.message;
     }
   }
 
