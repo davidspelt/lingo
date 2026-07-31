@@ -59,7 +59,11 @@
   <div class="card">
     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
       <h2 style="margin:0;">Quiz Editor</h2>
-      <a href="../index.html" class="btn btn-primary" style="text-decoration:none;">⬅ Terug naar Quiz</a>
+      <div style="display:flex; gap:8px; flex-wrap: wrap;">
+        <a href="../quiz.html" class="btn btn-primary" style="text-decoration:none;">🎯 Naar Quiz</a>
+        <a href="woorden.html" class="btn btn-primary" style="text-decoration:none;">📝 Woorden Editor</a>
+        <a href="../index.html" class="btn btn-primary" style="text-decoration:none;">⬅ Terug naar Menu</a>
+      </div>
     </div>
     <label for="gh-token">GitHub Personal Access Token (PAT):</label>
     <input type="password" id="gh-token" placeholder="ghp_..." onchange="saveTokenLocally(this.value)">

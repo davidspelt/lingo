@@ -10,6 +10,8 @@
 
     <div class="nav-bar">
         <a href="index.html" class="nav-link" style="color: var(--text-light); border-color: var(--primary);">🏠 Terug naar Menu</a>
+        <a href="edit/index.html" class="nav-link" style="color: var(--text-light); border-color: var(--primary);">✏️ Quiz bewerken</a>
+        <a href="edit/woorden.html" class="nav-link" style="color: var(--text-light); border-color: var(--primary);">📝 Woorden bewerken</a>
     </div>
 
     <div class="game-container">
@@ -52,7 +54,10 @@
         </div>
     </div>
 
-    <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alle scores</button>
+    <div style="display:flex; justify-content:center; gap:10px; margin-top: 16px; flex-wrap: wrap;">
+        <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alles</button>
+        <a href="edit/index.html" class="btn active" style="text-decoration:none; display:inline-block;">✏️ Edit</a>
+    </div>
 
     <div id="status-modal" class="modal-overlay">
         <div class="modal">
