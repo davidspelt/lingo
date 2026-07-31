@@ -4,8 +4,7 @@ const defaultWords = {
     10: ["bibliotheek", "vliegtuigen", "universiteit", "computeren", "schilderij", "wandelingen", "ziekenhuizen", "speelplaats", "chocolades", "kabeljauwen", "tekenfilm", "hoofdstad", "speelgoed", "sportvelden", "vriendschap", "vogelkooi", "aardbeving", "bosbranden", "werelddeel", "wintertijd", "klaslokaal", "regendruppel", "vuurtorens", "zandstrand", "bloementuin"]
 };
 
-// Controleer of de customWordsList uit woorden.js bestaat, anders pakken we de defaults
-let wordsData = (typeof customWordsList !== 'undefined') ? JSON.parse(JSON.stringify(customWordsList)) : JSON.parse(JSON.stringify(defaultWords));
+let wordsData = {};
 let secretWord = "";
 let currentAttempt = 0;
 let totalAttempts = 5; 
@@ -74,6 +73,22 @@ function toggleSound() {
     document.getElementById('sound-icon').innerText = soundEnabled ? "🔊" : "🔇";
     if (soundEnabled) { initAudio(); playSound('type'); }
     if (document.activeElement) document.activeElement.blur();
+}
+
+async function loadWordsFromJSON() {
+    try {
+        const response = await fetch('./woorden.json');
+        if (!response.ok) throw new Error('Woordenbestand niet gevonden');
+        const data = await response.json();
+        if (data && typeof data === 'object') {
+            wordsData = data;
+        }
+    } catch (error) {
+        console.warn('Kon woorden.json niet laden, fallback naar defaults:', error.message);
+        wordsData = JSON.parse(JSON.stringify(defaultWords));
+    }
+
+    initGame(wordLength);
 }
 
 function initGame(length) {
@@ -295,5 +310,5 @@ window.addEventListener('keydown', (e) => {
     else handleKeyPress(key);
 });
 
-// Start de game nu direct op basis van de array in woorden.js
-initGame(wordLength);
+// Start de game nu direct op basis van woorden.json
+loadWordsFromJSON();
