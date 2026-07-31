@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title id="page-title">Spel Deluxe</title>
+    <title id="page-title">Custom Deluxe</title>
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon" />
     <link rel="stylesheet" href="../assets/style.css">
 </head>
@@ -15,7 +15,7 @@
 
     <div class="game-container">
         <div class="header">
-            <h1 id="main-title">SPEL<span>_</span></h1>
+            <h1 id="main-title">CUSTOM<span>_</span></h1>
         </div>
 
         <!-- Container voor de dynamische uitleg/spelregels -->
@@ -59,7 +59,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", () => {
             const urlParams = new URLSearchParams(window.location.search);
-            const sportNaam = urlParams.get('name') || 'Spel';
+            const sportNaam = urlParams.get('name') || 'Custom';
             const accentText = urlParams.get('accent') || '_';
             const uitlegText = urlParams.get('desc'); 
 
