@@ -63,12 +63,19 @@ function editTeamName(team) {
     }
 }
 
+function resetLingoUsedWords() {
+    ['5', '6', '10'].forEach(length => {
+        localStorage.removeItem(`lingo_used_words_${length}`);
+    });
+}
+
 // Volledige resetfunctie voor de scores en namen
 function resetAllScores() {
     if (confirm("Weet je zeker dat je alle scores en teamnamen wilt resetten?")) {
         scores = { A: 0, B: 0 };
         teamNames = { A: 'TEAM A', B: 'TEAM B' };
         currentTeam = 'A';
+        resetLingoUsedWords();
         saveSharedState();
         location.reload();
     }
