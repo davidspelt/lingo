@@ -112,8 +112,6 @@ function initGame(length) {
     }
 
     secretWord = unusedWords[Math.floor(Math.random() * unusedWords.length)].toLowerCase();
-    usedWords.push(secretWord);
-    localStorage.setItem('lingo_used_words_' + wordLength, JSON.stringify(usedWords));
     
     currentAttempt = 0;
     totalAttempts = 5; 
@@ -266,6 +264,13 @@ function checkGuess() {
             let pointsEarned = (wordLength === 10) ? 5 : 1;
             scores[currentTeam] += pointsEarned;
             saveSharedState(); 
+
+            let usedWords = [];
+            try { usedWords = JSON.parse(localStorage.getItem('lingo_used_words_' + wordLength)) || []; } catch (e) { usedWords = []; }
+            if (!usedWords.includes(secretWord)) {
+                usedWords.push(secretWord);
+                localStorage.setItem('lingo_used_words_' + wordLength, JSON.stringify(usedWords));
+            }
 
             showEndGameModal(true, pointsEarned);
             window.isAnimating = false;
