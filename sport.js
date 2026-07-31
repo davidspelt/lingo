@@ -46,3 +46,15 @@ function adjustSportScore(amount) {
         playSound('min');
     }
 }
+
+function handleSportKeyboard(event) {
+    if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        adjustSportScore(1);
+    } else if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        adjustSportScore(-1);
+    }
+}
+
+document.addEventListener('keydown', handleSportKeyboard);
