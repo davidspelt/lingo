@@ -3,7 +3,7 @@ const defaultQuizData = {
         {
             "question": "Welke rivier stroomt er dwars door de stad Parijs?",
             "answers": [
-                "De Loire",
+                "De Lire",
                 "De Seine",
                 "De Rhône",
                 "De Rijn"
