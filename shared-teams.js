@@ -69,6 +69,12 @@ function resetLingoUsedWords() {
     });
 }
 
+function toggleTeamWithKeyboard() {
+    currentTeam = currentTeam === 'A' ? 'B' : 'A';
+    saveSharedState();
+    if (typeof playSound === 'function') playSound('type');
+}
+
 // Volledige resetfunctie voor de scores en namen
 function resetAllScores() {
     if (confirm("Weet je zeker dat je alle scores en teamnamen wilt resetten?")) {
@@ -83,3 +89,11 @@ function resetAllScores() {
 
 // Voer dit direct uit bij het inladen
 document.addEventListener('DOMContentLoaded', loadSharedState);
+
+document.addEventListener('keydown', (event) => {
+    if (event.key === 'Tab') {
+        event.preventDefault();
+        event.stopPropagation();
+        toggleTeamWithKeyboard();
+    }
+});
