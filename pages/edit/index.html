@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz Editor</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card-bg: #1e293b;
+      --text: #f8fafc;
+      --primary: #3b82f6;
+      --success: #22c55e;
+      --danger: #ef4444;
+      --border: #334155;
+    }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+      background: var(--bg); 
+      color: var(--text); 
+      padding: 20px; 
+      margin: 0; 
+    }
+    .container { max-width: 800px; margin: 0 auto; }
+    .card { 
+      background: var(--card-bg); 
+      padding: 16px; 
+      border-radius: 8px; 
+      margin-bottom: 16px; 
+      border: 1px solid var(--border); 
+      position: relative; 
+    }
+    label { display: block; margin-top: 10px; font-weight: 600; font-size: 13px; color: #cbd5e1; }
+    input[type="text"], input[type="password"], select {
+      width: 100%; 
+      padding: 8px 10px; 
+      margin-top: 4px; 
+      background: #020617; 
+      border: 1px solid var(--border);
+      color: var(--text); 
+      border-radius: 4px; 
+      box-sizing: border-box;
+    }
+    .btn { padding: 8px 14px; border: none; border-radius: 6px; cursor: pointer; font-weight: bold; font-size: 14px; }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-success { background: var(--success); color: white; }
+    .btn-danger { background: var(--danger); color: white; }
+    .btn-sm { padding: 4px 8px; font-size: 12px; }
+    .answers-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 6px; }
+    #status { margin-top: 15px; padding: 12px; border-radius: 6px; display: none; font-weight: bold; }
+    .cat-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-bottom: 12px; }
+    .q-block { background: #090d16; border: 1px solid #1e293b; padding: 12px; border-radius: 6px; margin-bottom: 12px; position: relative; }
+    .loading-text { font-size: 14px; color: #94a3b8; text-align: center; padding: 20px; }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <div class="card">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+      <h2 style="margin:0;">Quiz Editor</h2>
+      <div style="display:flex; gap:8px; flex-wrap: wrap;">
+        <a href="woorden.html" class="btn btn-primary" style="text-decoration:none;">📝 Woorden Editor</a>
+        <a href="../index.html" class="btn btn-primary" style="text-decoration:none;">⬅ Terug naar Menu</a>
+      </div>
+    </div>
+    <label for="gh-token">GitHub Personal Access Token (PAT):</label>
+    <input type="password" id="gh-token" placeholder="ghp_..." onchange="saveTokenLocally(this.value)">
+    <p style="font-size: 12px; color: #94a3b8; margin-top: 4px;">Nodig om opslaan op GitHub te authoriseren. Wordt lokaal in je browser opgeslagen.</p>
+  </div>
+
+  <div id="status"></div>
+  <div id="editor-app">
+    <div class="card loading-text">Huidige vragen laden van GitHub...</div>
+  </div>
+
+  <div style="display:flex; justify-content:space-between; margin-top: 15px; margin-bottom: 30px;">
+    <button class="btn btn-primary" onclick="addCategory()">+ Categorie Toevoegen</button>
+    <button class="btn btn-success" onclick="saveToGitHub()">💾 Opslaan & Pushen naar GitHub</button>
+  </div>
+</div>
+
+<script src="../../scripts/shared-teams.js"></script>
+<script>
+  const REPO_OWNER = 'davidspelt';
+  const REPO_NAME = 'lingo';
+  const CANDIDATE_FILES = ['quiz.json', 'vragen.json'];
+
+  let quizData = {};
+  let currentFileSha = null;
+  let activeFilePath = 'quiz.json';
+
+  function saveTokenLocally(val) {
+    localStorage.setItem('lingo_gh_token', val.trim());
+  }
+
+  function getToken() {
+    return document.getElementById('gh-token').value.trim();
+  }
+
+  async function loadData() {
+    const savedToken = localStorage.getItem('lingo_gh_token') || '';
+    if (savedToken) {
+      document.getElementById('gh-token').value = savedToken;
+    }
+
+    try {
+      const headers = savedToken ? { 'Authorization': `token ${savedToken}` } : {};
+      let loaded = false;
+
+      for (const filePath of CANDIDATE_FILES) {
+        try {
+          const apiRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${filePath}`, { headers });
+
+          if (apiRes.ok) {
+            const meta = await apiRes.json();
+            currentFileSha = meta.sha;
+            activeFilePath = filePath;
+            const decoded = decodeURIComponent(escape(atob(meta.content.replace(/\n/g, ''))));
+            quizData = JSON.parse(decoded);
+            loaded = true;
+            break;
+          }
+
+          const rawRes = await fetch(`https://raw.githubusercontent.com/${REPO_OWNER}/${REPO_NAME}/main/${filePath}?cachebust=${Date.now()}`);
+          if (rawRes.ok) {
+            quizData = await rawRes.json();
+            activeFilePath = filePath;
+            loaded = true;
+            break;
+          }
+        } catch (innerErr) {
+          console.warn(`Kon ${filePath} niet laden:`, innerErr);
+        }
+      }
+
+      if (!loaded) {
+        quizData = { "Algemeen": [] };
+      }
+    } catch (e) {
+      console.error('Laden mislukt:', e);
+      showStatus('Kon de huidige vragen niet automatisch laden.', '#991b1b');
+    }
+
+    render();
+  }
+
+  function render() {
+    const container = document.getElementById('editor-app');
+    container.innerHTML = '';
+
+    if (!quizData || Object.keys(quizData).length === 0) {
+      container.innerHTML = `<div class="card"><p style="color:#64748b;">Geen categorieën of vragen gevonden.</p></div>`;
+      return;
+    }
+
+    Object.keys(quizData).forEach(cat => {
+      const catCard = document.createElement('div');
+      catCard.className = 'card';
+
+      const questions = Array.isArray(quizData[cat]) ? quizData[cat] : [];
+      let questionsHTML = '';
+
+      questions.forEach((q, qIdx) => {
+        const answers = Array.isArray(q.answers) ? q.answers : (q.options || []);
+        
+        questionsHTML += `
+          <div class="q-block">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <strong>Vraag ${qIdx + 1}</strong>
+              <button class="btn btn-danger btn-sm" onclick="removeQuestion('${cat}', ${qIdx})">Verwijderen</button>
+            </div>
+            
+            <label>Vraagtekst:</label>
+            <input type="text" value="${escapeHtml(q.question)}" oninput="updateQuestionText('${cat}', ${qIdx}, this.value)">
+            
+            <label>Antwoorden / Opties:</label>
+            <div class="answers-grid">
+              ${answers.map((ans, aIdx) => `
+                <div>
+                  <small style="color:#94a3b8">Optie ${String.fromCharCode(65 + aIdx)}:</small>
+                  <input type="text" value="${escapeHtml(ans)}" oninput="updateAnswer('${cat}', ${qIdx}, ${aIdx}, this.value)">
+                </div>
+              `).join('')}
+            </div>
+
+            <label>Correct Antwoord Index:</label>
+            <select onchange="updateCorrectIndex('${cat}', ${qIdx}, this.value)">
+              ${answers.map((_, aIdx) => `
+                <option value="${aIdx}" ${q.correct === aIdx || q.answer === aIdx ? 'selected' : ''}>Optie ${String.fromCharCode(65 + aIdx)}</option>
+              `).join('')}
+            </select>
+          </div>
+        `;
+      });
+
+      catCard.innerHTML = `
+        <div class="cat-header">
+          <h3 style="margin:0;">📁 ${cat}</h3>
+          <div>
+            <button class="btn btn-primary btn-sm" onclick="addQuestion('${cat}')">+ Vraag</button>
+            <button class="btn btn-danger btn-sm" onclick="removeCategory('${cat}')">Verwijder Categorie</button>
+          </div>
+        </div>
+        ${questionsHTML || '<p style="color:#64748b; font-size:14px;">Geen vragen in deze categorie.</p>'}
+      `;
+
+      container.appendChild(catCard);
+    });
+  }
+
+  function updateQuestionText(cat, qIdx, value) {
+    quizData[cat][qIdx].question = value;
+  }
+
+  function updateAnswer(cat, qIdx, aIdx, value) {
+    if (!quizData[cat][qIdx].answers) quizData[cat][qIdx].answers = quizData[cat][qIdx].options || [];
+    quizData[cat][qIdx].answers[aIdx] = value;
+  }
+
+  function updateCorrectIndex(cat, qIdx, value) {
+    const val = parseInt(value, 10);
+    quizData[cat][qIdx].correct = val;
+    quizData[cat][qIdx].answer = val;
+  }
+
+  function addQuestion(cat) {
+    if (!quizData[cat]) quizData[cat] = [];
+    quizData[cat].push({
+      question: "Nieuwe vraag",
+      answers: ["Optie A", "Optie B", "Optie C", "Optie D"],
+      correct: 0
+    });
+    render();
+  }
+
+  function removeQuestion(cat, idx) {
+    quizData[cat].splice(idx, 1);
+    render();
+  }
+
+  function addCategory() {
+    const cat = prompt("Naam van de nieuwe categorie:");
+    if (cat && !quizData[cat]) {
+      quizData[cat] = [];
+      render();
+    }
+  }
+
+  function removeCategory(cat) {
+    if (confirm(`Categorie '${cat}' verwijderen?`)) {
+      delete quizData[cat];
+      render();
+    }
+  }
+
+  function escapeHtml(str) {
+    return (str || '').replace(/"/g, '&quot;');
+  }
+
+  function showStatus(msg, bgColor) {
+    const status = document.getElementById('status');
+    status.style.display = 'block';
+    status.style.background = bgColor;
+    status.innerText = msg;
+  }
+
+  async function saveToGitHub() {
+    const token = getToken();
+
+    if (!token) {
+      showStatus('Voer eerst jouw GitHub Personal Access Token in om op te slaan.', '#991b1b');
+      return;
+    }
+
+    showStatus('Bezig met opslaan en pushen naar GitHub...', '#1e3a8a');
+
+    try {
+      // 1. Haal de actuele SHA op als we die nog niet hadden
+      if (!currentFileSha) {
+        const checkRes = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${activeFilePath || 'quiz.json'}`, {
+          headers: { 'Authorization': `token ${token}` }
+        });
+        if (checkRes.ok) {
+          const meta = await checkRes.json();
+          currentFileSha = meta.sha;
+        }
+      }
+
+      // 2. Gegevens converteren naar Base64
+      const jsonString = JSON.stringify(quizData, null, 2);
+      const base64Content = btoa(unescape(encodeURIComponent(jsonString)));
+
+      const bodyData = {
+        message: 'Update quizvragen via Editor',
+        content: base64Content
+      };
+      if (currentFileSha) bodyData.sha = currentFileSha;
+
+      // 3. Stuur de PUT request naar GitHub
+      const response = await fetch(`https://api.github.com/repos/${REPO_OWNER}/${REPO_NAME}/contents/${activeFilePath || 'quiz.json'}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `token ${token}`,
+          'Content-Type': 'application/json',
+          'Accept': 'application/vnd.github.v3+json'
+        },
+        body: JSON.stringify(bodyData)
+      });
+
+      if (response.ok) {
+        const resData = await response.json();
+        currentFileSha = resData.content.sha;
+        showStatus('Succes! Vragen opgeslagen. GitHub Pages update de quiz binnen 1 minuut.', '#065f46');
+      } else {
+        const err = await response.json();
+        throw new Error(err.message || 'API error');
+      }
+    } catch (e) {
+      showStatus('Opslaan mislukt: ' + e.message, '#991b1b');
+    }
+  }
+
+  document.addEventListener('DOMContentLoaded', loadData);
+</script>
+</body>
+</html>
