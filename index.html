@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Wurftolympics</title>
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="assets/style.css" />
+    <style>
+      .hub-menu {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        width: 100%;
+        margin-top: 25px;
+      }
+      .hub-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+        padding: 22px;
+        font-size: 1.4rem;
+        text-decoration: none;
+      }
+      .hub-btn.lingo-btn {
+        background-color: rgba(228, 63, 90, 0.1);
+        border-color: var(--primary);
+        color: #fff;
+      }
+      .hub-btn.lingo-btn:hover {
+        background-color: var(--primary);
+        box-shadow: 0 0 20px var(--primary-glow);
+      }
+
+      .hub-btn.quiz-btn {
+        background-color: rgba(52, 152, 219, 0.1);
+        border-color: var(--team-a);
+        color: #fff;
+      }
+      .hub-btn.quiz-btn:hover {
+        background-color: var(--team-a);
+        box-shadow: 0 0 20px rgba(52, 152, 219, 0.4);
+        border-color: rgba(52, 152, 219, 0.1);
+      }
+
+      .hub-btn.sport-btn {
+        background-color: rgba(46, 204, 113, 0.1);
+        border-color: var(--team-b);
+        color: #fff;
+      }
+      .hub-btn.sport-btn:hover {
+        background-color: var(--team-b);
+        box-shadow: 0 0 20px rgba(46, 204, 113, 0.4);
+        border-color: rgba(46, 204, 113, 0.4);
+      }
+
+      .edit-hint {
+        font-size: 0.85rem;
+        color: var(--text-muted);
+        text-align: center;
+        margin-top: -10px;
+        margin-bottom: 15px;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="game-container" style="max-width: 700px;">
+      <div class="header">
+        <h1>WURFT<span>OLYMPICS</span></h1>
+      </div>
+
+      <div class="edit-hint">
+        💡 Dubbelklik op een teamnaam om deze te veranderen!
+      </div>
+
+      <div class="team-selector-container">
+        <div
+          id="team-a-box"
+          class="team-box team-a"
+          onclick="selectTeam('A')"
+          ondblclick="editTeamName('A')"
+        >
+          <div id="name-a" class="team-name">TEAM A</div>
+          <div id="score-a" class="team-score">0</div>
+        </div>
+        <div class="vs-divider">VS</div>
+        <div
+          id="team-b-box"
+          class="team-box team-b"
+          onclick="selectTeam('B')"
+          ondblclick="editTeamName('B')"
+        >
+          <div id="name-b" class="team-name">TEAM B</div>
+          <div id="score-b" class="team-score">0</div>
+        </div>
+      </div>
+
+      <div class="hub-menu">
+        <a href="pages/lingo.html" class="btn hub-btn lingo-btn">📖 Woordenschat</a>
+        <a href="pages/quiz.html" class="btn hub-btn quiz-btn">🥸 intelligentie</a>
+        <a href="pages/custom.html?name=Presen&accent=tatie&desc=Pak het object en laat de andere partij niet zien welke er anders is" class="btn hub-btn sport-btn">🎁 Presentatie</a>
+        <a href="pages/custom.html?name=Doel&accent=palen&desc=Beerpong of doelpalen" class="btn hub-btn quiz-btn">⚽ Custom</a>
+        <a href="pages/custom.html?name=Adje&accent=voor de Sfeer&desc=gooi 6 drink een shot. Eerste met 3 shots wint" class="btn hub-btn lingo-btn">⚡️ snelheid</a>
+        <a href="pages/custom.html?name=Hint&accent=en je wint&desc=Iedereen verzint een woord en schrijft deze op. <br> ronde 1: alleen praten<br> ronde 2: uitbeelden (en niet praten)<br> ronde 3: 1 woord" class="btn hub-btn sport-btn">🥸 Kennen</a>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:center; gap:10px; margin-top: 16px; flex-wrap: wrap;">
+      <button class="reset-scores-btn" onclick="resetAllScores()">🔄 Reset alles</button>
+      <a href="pages/edit/quiz.html" class="reset-scores-btn" style="text-decoration:none; display:inline-block;">✏️ Edit</a>
+    </div>
+
+    <script src="scripts/shared-teams.js"></script>
+  </body>
+</html>
